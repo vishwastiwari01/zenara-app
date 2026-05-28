@@ -49,7 +49,7 @@ class FloatingNavBar extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: isDark ? 20 : 10, sigmaY: isDark ? 20 : 10),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: tabs.map((tab) {
@@ -65,8 +65,8 @@ class FloatingNavBar extends StatelessWidget {
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeOutCubic,
                     padding: EdgeInsets.symmetric(
-                      horizontal: isActive ? 16 : 12,
-                      vertical: 10,
+                      horizontal: isActive ? 18 : 12,
+                      vertical: 12,
                     ),
                     decoration: BoxDecoration(
                       color: isActive

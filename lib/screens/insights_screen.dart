@@ -129,7 +129,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeOutCubic,
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                 decoration: BoxDecoration(
                   color: isActive ? AppColors.purple.withOpacity(isDark ? 0.4 : 0.15) : Colors.transparent,
                   borderRadius: BorderRadius.circular(16),
@@ -364,41 +364,43 @@ class _InsightsScreenState extends State<InsightsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
           SizedBox(
-            height: 150,
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(show: false),
-                titlesData: FlTitlesData(
-                  show: true,
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 22,
-                      getTitlesWidget: (value, meta) {
-                        final index = value.toInt();
-                        if (index < 0 || index >= _daysOfWeek.length) return const SizedBox.shrink();
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            _daysOfWeek[index],
-                            style: GoogleFonts.inter(color: AppColors.mutedText(context), fontSize: 11),
-                          ),
-                        );
-                      },
+            height: 180,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 16, bottom: 8),
+              child: LineChart(
+                LineChartData(
+                  gridData: FlGridData(show: false),
+                  titlesData: FlTitlesData(
+                    show: true,
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 32,
+                        getTitlesWidget: (value, meta) {
+                          final index = value.toInt();
+                          if (index < 0 || index >= _daysOfWeek.length) return const SizedBox.shrink();
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 12.0),
+                            child: Text(
+                              _daysOfWeek[index],
+                              style: GoogleFonts.inter(color: AppColors.mutedText(context), fontSize: 11),
+                            ),
+                          );
+                        },
+                      ),
                     ),
+                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   ),
-                  leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                ),
-                borderData: FlBorderData(show: false),
-                minX: 0,
-                maxX: 6,
-                minY: 0,
-                maxY: 10,
-                lineBarsData: [
+                  borderData: FlBorderData(show: false),
+                  minX: 0,
+                  maxX: 6,
+                  minY: 0,
+                  maxY: 12,
+                  lineBarsData: [
                   LineChartBarData(
                     spots: const [
                       FlSpot(0, 4),
@@ -436,6 +438,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   ),
                 ],
               ),
+            ),
             ),
           ).animate().shimmer(duration: 2000.ms, color: Colors.white24),
         ],

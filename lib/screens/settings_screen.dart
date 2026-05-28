@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/colors.dart';
 import '../widgets/glass_card.dart';
 import '../main.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback onDataErased;
@@ -552,7 +553,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 10),
           GestureDetector(
-            onTap: () {},
+            onTap: () async {
+              final url = Uri.parse('https://pmc.ncbi.nlm.nih.gov/articles/PMC7985461/');
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url);
+              }
+            },
             child: Text(
               'Read Research Papers ↗',
               style: GoogleFonts.dmSans(

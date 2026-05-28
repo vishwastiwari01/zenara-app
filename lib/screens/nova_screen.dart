@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/colors.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/nova_orb.dart';
 
 class NovaScreen extends StatefulWidget {
   const NovaScreen({Key? key}) : super(key: key);
@@ -29,6 +31,7 @@ class _NovaScreenState extends State<NovaScreen> {
   bool _loading = false;
   String _apiKey = '';
   bool _safetyTriggered = false;
+  NovaState _novaState = NovaState.idle;
 
   final List<String> _crisisWords = [
     "suicide", "kill myself", "harm myself", "end my life", "want to die", "self harm",
@@ -50,6 +53,34 @@ class _NovaScreenState extends State<NovaScreen> {
   bool _checkForCrisis(String text) {
     final lower = text.toLowerCase();
     return _crisisWords.any((word) => lower.contains(word));
+  }
+
+  void _updateNovaState(String text, bool isTyping) {
+    if (_safetyTriggered) {
+      _novaState = NovaState.stressed;
+      return;
+    }
+    
+    if (isTyping) {
+      _novaState = NovaState.typing;
+      return;
+    }
+
+    if (_loading) {
+      _novaState = NovaState.thinking;
+      return;
+    }
+
+    final lower = text.toLowerCase();
+    if (lower.contains('happy') || lower.contains('good') || lower.contains('great')) {
+      _novaState = NovaState.happy;
+    } else if (lower.contains('stress') || lower.contains('overwhelmed') || lower.contains('anxious')) {
+      _novaState = NovaState.stressed;
+    } else if (lower.contains('sleep') || lower.contains('tired')) {
+      _novaState = NovaState.sleeping;
+    } else {
+      _novaState = NovaState.idle;
+    }
   }
 
   String _getMockResponse(String userInput) {
@@ -76,6 +107,7 @@ class _NovaScreenState extends State<NovaScreen> {
     if (_checkForCrisis(text)) {
       setState(() {
         _safetyTriggered = true;
+        _novaState = NovaState.stressed;
         _messages.add({
           'id': DateTime.now().millisecondsSinceEpoch.toString(),
           'from': 'user',
@@ -102,6 +134,7 @@ class _NovaScreenState extends State<NovaScreen> {
         _inputController.clear();
       }
       _loading = true;
+      _updateNovaState(text, false);
     });
     _scrollToEnd();
 
@@ -138,6 +171,7 @@ class _NovaScreenState extends State<NovaScreen> {
               'from': 'nova',
               'text': reply,
             });
+            _updateNovaState(reply, false);
           });
         } else {
           throw Exception("API Error");
@@ -149,6 +183,7 @@ class _NovaScreenState extends State<NovaScreen> {
             'from': 'nova',
             'text': "I'm having a little trouble connecting to my servers. Take a breath — I'm still here with you. (Offline companion mode active)",
           });
+          _novaState = NovaState.idle;
         });
       }
     } else {
@@ -160,6 +195,7 @@ class _NovaScreenState extends State<NovaScreen> {
           'from': 'nova',
           'text': reply,
         });
+        _updateNovaState(reply, false);
       });
     }
 
@@ -174,7 +210,7 @@ class _NovaScreenState extends State<NovaScreen> {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 400),
+          duration: const Duration(milliseconds: 500),
           curve: Curves.easeOutQuart,
         );
       }
@@ -183,184 +219,220 @@ class _NovaScreenState extends State<NovaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
+
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Column(
+      body: Stack(
         children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.only(top: 12, bottom: 12),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.isDark(context) ? Colors.white.withOpacity(0.05) : AppColors.borderLight)),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  'Nova',
-                  style: GoogleFonts.playfairDisplay(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.text(context),
-                  ),
-                ).animate().fadeIn(duration: 400.ms),
-                const SizedBox(height: 2),
-                Text(
-                  'AI Companion',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: AppColors.purpleLight,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 1.2,
-                  ),
-                ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
-              ],
+          // Background Gradient Mesh
+          Positioned.fill(
+            child: AnimatedContainer(
+              duration: 2.seconds,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    if (_novaState == NovaState.stressed)
+                      AppColors.coral.withOpacity(0.05)
+                    else if (_novaState == NovaState.happy)
+                      AppColors.pink.withOpacity(0.05)
+                    else if (_novaState == NovaState.sleeping)
+                      AppColors.purpleDark.withOpacity(0.1)
+                    else
+                      AppColors.purple.withOpacity(isDark ? 0.05 : 0.02),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
             ),
           ),
 
-          Expanded(
-            child: Stack(
-              children: [
-                // Floating Particles/Glow in background
-                if (!_safetyTriggered && _messages.length <= 2)
-                  Center(
-                    child: Container(
-                      width: 200,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.purple.withOpacity(AppColors.isDark(context) ? 0.2 : 0.08),
-                            blurRadius: 100,
-                            spreadRadius: 20,
-                          ),
-                        ],
-                      ),
-                    ).animate(onPlay: (controller) => controller.repeat(reverse: true))
-                     .scaleXY(begin: 1.0, end: 1.2, duration: 4.seconds, curve: Curves.easeInOut)
-                     .fade(begin: 0.5, end: 1.0, duration: 2.seconds),
-                  ),
+          // Central Nova Avatar
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.15,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: NovaOrb(state: _novaState, size: 160),
+            ),
+          ),
 
-                // Chat Thread
-                Column(
-                  children: [
-                    if (_safetyTriggered)
+          // Foreground Chat
+          Column(
+            children: [
+              // Header
+              SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Nova',
+                        style: GoogleFonts.playfairDisplay(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.text(context),
+                        ),
+                      ).animate().fadeIn(duration: 400.ms),
+                      const Spacer(),
                       Container(
-                        margin: const EdgeInsets.all(16),
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: AppColors.coral.withOpacity(0.1),
-                          border: Border.all(color: AppColors.coral.withOpacity(0.5)),
-                          borderRadius: BorderRadius.circular(16),
+                          color: AppColors.purple.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Text(
-                          "Safety mechanisms engaged. Please seek immediate support.",
-                          style: GoogleFonts.inter(color: AppColors.coral, fontWeight: FontWeight.bold),
-                        ),
-                      ).animate().shake(duration: 400.ms),
-
-                    Expanded(
-                      child: ListView.builder(
-                        controller: _scrollController,
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          final msg = _messages[index];
-                          final isUser = msg['from'] == 'user';
-                          return _buildChatBubble(msg['text']!, isUser)
-                              .animate().fadeIn(duration: 300.ms).slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuart);
-                        },
-                      ),
-                    ),
-                    
-                    if (_loading)
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
                         child: Row(
                           children: [
                             Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                color: AppColors.purpleLight,
                                 shape: BoxShape.circle,
-                                color: AppColors.purple.withOpacity(0.2),
                               ),
-                              child: const Icon(Icons.graphic_eq, color: AppColors.purpleLight, size: 16),
                             ).animate(onPlay: (controller) => controller.repeat(reverse: true))
-                             .scaleXY(end: 1.1, duration: 600.ms)
-                             .shimmer(color: Colors.white, duration: 1.seconds),
-                            const SizedBox(width: 12),
-                            Text("Nova is thinking...", style: GoogleFonts.inter(color: AppColors.mutedText(context), fontSize: 13)),
+                             .fadeIn(duration: 1.seconds),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Online',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: AppColors.purpleLight,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Input Area
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.isDark(context) ? AppColors.bgCard.withOpacity(0.6) : Colors.white,
-              border: Border(top: BorderSide(color: AppColors.isDark(context) ? Colors.white.withOpacity(0.05) : AppColors.borderLight)),
-            ),
-            child: SafeArea(
-              top: false,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: AppColors.isDark(context) ? Colors.white.withOpacity(0.05) : AppColors.bgElevatedLight,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: AppColors.isDark(context) ? Colors.white.withOpacity(0.1) : AppColors.borderLight),
-                      ),
-                      child: TextField(
-                        controller: _inputController,
-                        style: GoogleFonts.inter(color: AppColors.text(context)),
-                        decoration: InputDecoration(
-                          hintText: "Share your thoughts...",
-                          hintStyle: GoogleFonts.inter(color: AppColors.mutedText(context)),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                        onSubmitted: (_) => _sendMessage(),
-                      ),
-                    ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: () => _sendMessage(),
-                    child: Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [AppColors.purple, AppColors.purpleLight],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.purple.withOpacity(0.3),
-                            blurRadius: 12,
-                            spreadRadius: 1,
+                ),
+              ),
+
+              // Chat Thread
+              Expanded(
+                child: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Colors.white, Colors.white, Colors.white],
+                      stops: [0.0, 0.1, 0.9, 1.0],
+                    ).createShader(bounds);
+                  },
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).size.height * 0.35, // Push messages down initially
+                      left: 16,
+                      right: 16,
+                      bottom: 24,
+                    ),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final msg = _messages[index];
+                      final isUser = msg['from'] == 'user';
+                      return _buildChatBubble(msg['text']!, isUser)
+                          .animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuart);
+                    },
+                  ),
+                ),
+              ),
+              
+              // Typing Indicator & Input Area
+              ClipRRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.bgCard.withOpacity(0.8) : Colors.white.withOpacity(0.8),
+                      border: Border(top: BorderSide(color: isDark ? Colors.white.withOpacity(0.05) : AppColors.borderLight)),
+                    ),
+                    child: SafeArea(
+                      top: false,
+                      child: Column(
+                        children: [
+                          if (_loading)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0, left: 16),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    "Nova is thinking...",
+                                    style: GoogleFonts.inter(
+                                      color: AppColors.purpleLight, 
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+                                   .fade(begin: 0.5, end: 1.0, duration: 1.seconds),
+                                ],
+                              ),
+                            ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? Colors.white.withOpacity(0.05) : AppColors.bgElevatedLight,
+                                    borderRadius: BorderRadius.circular(30),
+                                    border: Border.all(color: isDark ? Colors.white.withOpacity(0.1) : AppColors.borderLight),
+                                  ),
+                                  child: TextField(
+                                    controller: _inputController,
+                                    style: GoogleFonts.inter(color: AppColors.text(context)),
+                                    onChanged: (text) {
+                                      if (text.isNotEmpty && _novaState == NovaState.idle) {
+                                        setState(() => _novaState = NovaState.typing);
+                                      } else if (text.isEmpty && _novaState == NovaState.typing) {
+                                        setState(() => _novaState = NovaState.idle);
+                                      }
+                                    },
+                                    decoration: InputDecoration(
+                                      hintText: "Share what's on your mind...",
+                                      hintStyle: GoogleFonts.inter(color: AppColors.mutedText(context)),
+                                      border: InputBorder.none,
+                                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                                    ),
+                                    onSubmitted: (_) => _sendMessage(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              GestureDetector(
+                                onTap: () => _sendMessage(),
+                                child: Container(
+                                  width: 52,
+                                  height: 52,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.purple,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.purple.withOpacity(0.3),
+                                        blurRadius: 12,
+                                        spreadRadius: 2,
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(Icons.send_rounded, color: Colors.white, size: 22),
+                                ).animate().scale(delay: 200.ms, duration: 300.ms, curve: Curves.easeOutBack),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-                    ).animate().scale(delay: 200.ms, duration: 300.ms, curve: Curves.easeOutBack),
+                    ),
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),
@@ -368,55 +440,54 @@ class _NovaScreenState extends State<NovaScreen> {
   }
 
   Widget _buildChatBubble(String text, bool isUser) {
+    final isDark = AppColors.isDark(context);
+    
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Row(
         mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!isUser) ...[
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [AppColors.teal.withOpacity(0.8), AppColors.purple.withOpacity(0.8)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: const Icon(Icons.auto_awesome, color: Colors.white, size: 18),
-            ),
-            const SizedBox(width: 12),
-          ],
+          if (!isUser) const SizedBox(width: 8),
           Flexible(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
               decoration: BoxDecoration(
-                color: isUser ? AppColors.purple : (AppColors.isDark(context) ? AppColors.bgGlass : const Color(0xFFF1F0FF)),
+                color: isUser 
+                    ? AppColors.purple 
+                    : (isDark ? AppColors.bgGlass : Colors.white),
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(20),
-                  topRight: const Radius.circular(20),
-                  bottomLeft: Radius.circular(isUser ? 20 : 4),
-                  bottomRight: Radius.circular(isUser ? 4 : 20),
+                  topLeft: const Radius.circular(24),
+                  topRight: const Radius.circular(24),
+                  bottomLeft: Radius.circular(isUser ? 24 : 8),
+                  bottomRight: Radius.circular(isUser ? 8 : 24),
                 ),
                 border: Border.all(
-                  color: isUser ? Colors.transparent : (AppColors.isDark(context) ? Colors.white.withOpacity(0.1) : AppColors.borderLight),
+                  color: isUser 
+                      ? Colors.transparent 
+                      : (isDark ? Colors.white.withOpacity(0.1) : AppColors.borderLight),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 20,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 4),
+                  )
+                ],
               ),
               child: Text(
                 text,
                 style: GoogleFonts.inter(
                   color: isUser ? Colors.white : AppColors.text(context),
-                  fontSize: 15,
-                  height: 1.5,
+                  fontSize: 16,
+                  height: 1.6,
                   fontWeight: FontWeight.w400,
                 ),
               ),
             ),
           ),
-          if (isUser) const SizedBox(width: 12),
+          if (isUser) const SizedBox(width: 8),
         ],
       ),
     );
