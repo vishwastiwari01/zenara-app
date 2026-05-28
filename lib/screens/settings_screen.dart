@@ -32,7 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadApiKey() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _apiKeyController.text = prefs.getString('zenara_anthropic_api_key') ?? '';
+      _apiKeyController.text = prefs.getString('zenara_openrouter_api_key') ?? '';
     });
   }
 
@@ -44,7 +44,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final messenger = ScaffoldMessenger.of(context);
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('zenara_anthropic_api_key', _apiKeyController.text.trim());
+      await prefs.setString('zenara_openrouter_api_key', _apiKeyController.text.trim());
       messenger.showSnackBar(
         SnackBar(
           content: Text('API Key saved successfully!', style: GoogleFonts.dmSans()),
@@ -240,7 +240,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Claude API Key',
+            'OpenRouter API Key',
             style: GoogleFonts.dmSans(
               fontSize: 14,
               fontWeight: FontWeight.bold,
@@ -249,7 +249,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Enter your Anthropic Claude API Key to unlock online companion mode. Leave empty to use local offline mock responses.',
+            'Enter your OpenRouter API Key to unlock online companion mode. Leave empty to use local offline mock responses.',
             style: GoogleFonts.dmSans(
               fontSize: 12,
               color: AppColors.muted,
@@ -410,6 +410,57 @@ class _SettingsScreenState extends State<SettingsScreen> {
               fontSize: 11.5,
               color: const Color(0xFFF06C8A),
               height: 1.45,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTheoreticalFrameworkCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard.withOpacity(0.7),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.science_outlined, color: AppColors.purpleLight, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                'Clinical Protocols & Safety',
+                style: GoogleFonts.dmSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Zenara is designed in accordance with established mental health app quality assessment guidelines. It incorporates core criteria from the Mobile App Rating Scale (A-MARS) and the user version (uMARS) focusing on:\n\n• Evidence of effectiveness & quality information\n• SMART goal setting strategies\n• Integration with clinical interoperability standards\n• Focus on accessible resources and active user engagement\n\nThese frameworks ensure our digital mental health services provide safe, reliable, and high-quality psychological support based on peer-reviewed evaluations.',
+            style: GoogleFonts.dmSans(
+              fontSize: 11.5,
+              color: AppColors.muted,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 10),
+          GestureDetector(
+            onTap: () {},
+            child: Text(
+              'Read Research Papers ↗',
+              style: GoogleFonts.dmSans(
+                fontSize: 12,
+                color: AppColors.teal,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],

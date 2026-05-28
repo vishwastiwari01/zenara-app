@@ -46,7 +46,7 @@ class _NovaScreenState extends State<NovaScreen> {
   Future<void> _loadApiKey() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _apiKey = prefs.getString('zenara_anthropic_api_key') ?? '';
+      _apiKey = prefs.getString('zenara_openrouter_api_key') ?? '';
     });
   }
 
@@ -113,26 +113,29 @@ class _NovaScreenState extends State<NovaScreen> {
         final systemPrompt = "You are Nova, Zenara's compassionate AI mental health companion. You are warm, empathetic, and supportive. You help users reflect on their emotions, reframe negative thoughts, and practice coping strategies. You are NOT a therapist or medical professional — always remind users to speak with their therapist (Dr. Hayes) for clinical support. Keep responses concise (2-3 sentences), warm, and conversational. Use gentle, supportive language. If you detect any self-harm language, immediately provide crisis resources.";
         
         final response = await http.post(
-          Uri.parse('https://api.anthropic.com/v1/messages'),
+          Uri.parse('https://openrouter.ai/api/v1/chat/completions'),
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': _apiKey,
-            'anthropic-version': '2023-06-01',
+            'Authorization': 'Bearer $_apiKey',
           },
           body: json.encode({
-            'model': 'claude-3-5-sonnet-20241022',
-            'max_tokens': 200,
-            'system': systemPrompt,
-            'messages': _messages.where((m) => m['from'] != 'nova' || !m['text']!.startsWith("Safety Warning")).map((m) => {
-              'role': m['from'] == 'user' ? 'user' : 'assistant',
-              'content': m['text'],
-            }).toList(),
+            'model': 'anthropic/claude-3.5-sonnet',
+            'messages': [
+              {'role': 'system', 'content': systemPrompt},
+              ..._messages.where((m) => m['from'] != 'nova' || !m['text']!.startsWith("Safety Warning")).map((m) => {
+                'role': m['from'] == 'user' ? 'user' : 'assistant',
+                'content': m['text'],
+              }).toList(),
+            ],
           }),
         );
 
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
-          final reply = data['content']?[0]?['text'] ?? "I'm here with you. Tell me more.";
+          String reply = "I'm here with you. Tell me more.";
+          if (data['choices'] != null && data['choices'].isNotEmpty) {
+            reply = data['choices'][0]['message']['content'] ?? reply;
+          }
           setState(() {
             _messages.add({
               'id': DateTime.now().millisecondsSinceEpoch.toString(),
