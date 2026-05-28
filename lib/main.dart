@@ -35,11 +35,13 @@ class MyApp extends StatelessWidget {
           primary: AppColors.purple,
           secondary: AppColors.teal,
           surface: AppColors.bgCard,
-          error: Color(0xFFF06C8A),
+          onSurface: Colors.white,
+          error: Color(0xFFF472B6),
         ),
-        textTheme: GoogleFonts.dmSansTextTheme(
+        textTheme: GoogleFonts.interTextTheme(
           ThemeData.dark().textTheme,
         ),
+        dialogBackgroundColor: AppColors.bgCard,
       ),
       home: const MainShell(),
     );
@@ -207,8 +209,8 @@ class _MainShellState extends State<MainShell> {
               const SizedBox(height: 18),
               Text(
                 'Loading Zenara...',
-                style: GoogleFonts.dmSans(
-                  color: Colors.white,
+                style: GoogleFonts.inter(
+                  color: AppColors.textPrimary,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -232,7 +234,7 @@ class _MainShellState extends State<MainShell> {
       },
       {
         'id': 'journal',
-        'label': 'Journal',
+        'label': 'My Journal',
         'icon': Icons.menu_book_outlined,
         'activeIcon': Icons.menu_book,
       },
@@ -360,7 +362,7 @@ class _MainShellState extends State<MainShell> {
                           const SizedBox(height: 2),
                           Text(
                             tab['label'] as String,
-                            style: GoogleFonts.dmSans(
+                            style: GoogleFonts.inter(
                               fontSize: 10,
                               color: color,
                               fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
@@ -381,13 +383,13 @@ class _MainShellState extends State<MainShell> {
               decoration: BoxDecoration(
                 color: AppColors.bg,
                 border: Border(
-                  top: BorderSide(color: Colors.white.withOpacity(0.03), width: 0.5),
+                  top: BorderSide(color: AppColors.border, width: 0.5),
                 ),
               ),
               alignment: Alignment.center,
               child: Text(
                 'Support companion — not a substitute for clinical therapy. In crisis? Call 988 or 9152987821.',
-                style: GoogleFonts.dmSans(
+                style: GoogleFonts.inter(
                   color: AppColors.muted,
                   fontSize: 9,
                 ),

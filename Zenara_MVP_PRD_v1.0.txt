@@ -1,0 +1,165 @@
+
+
+ZENARA
+Mental Health Platform
+Product Requirements Document
+
+
+Document Type
+Minimum Viable Product (MVP) PRD
+Version
+1.0 — Initial Release
+Classification
+Internal — Confidential
+Date
+May 2026
+Prepared By
+Product Strategy Team
+Status
+Active
+
+CONFIDENTIAL — FOR INTERNAL USE ONLY
+
+01 — EXECUTIVE SUMMARY
+
+
+This document constitutes the formal Product Requirements Document (PRD) for the Minimum Viable Product (MVP) release of Zenara, a hybrid mental health platform designed to bridge the gap between daily emotional self-management and structured clinical therapy.
+
+Product Objective
+To deliver a clinically informed, AI-augmented mobile platform that empowers users to manage their mental health daily, while providing licensed therapists with rich, structured data to conduct more effective and context-aware weekly sessions.
+
+The Core Product Loop
+The Zenara platform is built around a three-stage engagement loop that creates continuous value for both end users and clinical practitioners:
+
+01  Daily Engagement
+The user interacts with Zenara each day through mood check-ins, journaling, and AI companion sessions.
+02  AI Structuring
+The AI companion aggregates and summarises daily data — mood trends, journal themes, and emotional patterns — into a structured weekly report.
+03  Clinical Application
+The therapist accesses the secure web portal to review AI-generated summaries before each session, enabling richer, evidence-based conversations.
+
+
+02 — MVP FEATURE SCOPE
+
+
+The following modules represent the complete set of features required for the MVP release. Each capability has been selected to validate the core product thesis and establish the foundational AI-to-Therapist data loop. Features outside this scope are deferred to Phase 2.
+
+Module A — Daily Check-In (Home Page)
+The home screen serves as the primary daily touchpoint, enabling users to log their emotional and physical state in an intuitive, engaging interface.
+
+MODULE A  — Daily Check-In & Mood Tracking
+Energy Tracking
+Multi-dimensional energy logging across mental, physical, and social axes using responsive sliding scales.
+Mood Meter
+Interactive home screen featuring emotive bubble UI for high-engagement, low-friction daily mood capture.
+Emotion Sizing
+Users select up to five primary emotions and calibrate bubble sizes proportionally to reflect intensity, generating quantitative emotional data over time.
+
+Module B — Custom Journal Engine
+The journal module is the primary mechanism for rich qualitative data collection. Its design prioritises personalisation and expressive freedom to encourage consistent, authentic engagement.
+
+MODULE B  — Personalised Journal Engine
+Personalised Canvas
+Highly customisable, visually appealing journalling interface adaptable to individual user preferences.
+Multimedia Input
+Supports text bubbles, voice notes, and a freehand doodle section to accommodate diverse communication styles and cognitive profiles.
+Guided Reflection
+AI-curated journal prompts and reflective questions to support users who require structured emotional processing.
+
+Module C — AI Companion & Therapist Dashboard
+This module constitutes the core differentiator of the Zenara platform — the intelligent bridge between daily user experience and clinical practice.
+
+MODULE C  — AI Companion & Clinical Interface
+AI Emotional Companion
+Always-available conversational AI providing empathetic, evidence-informed emotional support between therapy sessions.
+Inner Dialogue Reframer
+Cognitive reframing tools that guide users in identifying and restructuring negative thought patterns.
+Executive Function Buddy
+Task decomposition assistant to support users with executive function challenges in breaking complex responsibilities into manageable steps.
+Safety Layer (Invisible)
+Real-time passive risk detection system. Upon identification of self-harm indicators, the AI companion is automatically suspended and emergency contact resources are surfaced immediately.
+Therapist Web Portal
+Secure, HIPAA-aligned web dashboard enabling therapists to review AI-generated weekly summaries — including mood trends and journal themes — in advance of scheduled sessions.
+
+Module D — Coping Library
+The Coping Library provides users with a structured repository of evidence-based self-regulation tools, accessible on demand as a personal safe space.
+
+MODULE D  — Actionable Coping Library
+Personalised Safe Space
+A curated, user-customisable library of coping strategies and grounding exercises tailored to individual needs and preferences.
+Sensory Reset Soundboard
+Ambient audio player featuring calming frequencies and soundscapes designed to facilitate sensory regulation and stress reduction.
+
+
+03 — PHASE 2 PRODUCT ROADMAP
+
+
+The following features have been strategically deferred to Phase 2. This decision ensures that the MVP development budget is concentrated on validating the core AI-to-Therapist value proposition. Each deferral is based on resource complexity, dependency on validated user data, or infrastructure requirements that exceed MVP scope.
+
+Feature
+Rationale for Phase 2 Deferral
+Community Component
+Requires substantial server infrastructure and dedicated human moderation resources to maintain a safe and inclusive environment for neurodivergent users. Premature deployment poses significant safety and reputational risk.
+Sleep Tracker
+Subjective self-reporting yields low engagement and unreliable data. Phase 2 will integrate a custom BLE (Bluetooth Low Energy) bridge to ingest objective sleep metrics directly from user wearables.
+Gamified Marketplace
+Extensive front-end design effort for sticker packs and gamified customization would divert engineering resources from the core AI-to-Therapist data loop — the primary value driver of the platform.
+Influencer Affiliate System
+Custom backend affiliate tracking, commission management, and tiered subscription logic constitutes marketing infrastructure rather than a clinical feature. Deferred pending validated user acquisition data.
+
+
+04 — TECHNICAL & COMPLIANCE BASELINE
+
+
+The following requirements are non-negotiable pre-conditions for the MVP launch. They constitute the legal, security, and ethical foundation upon which the platform must be built prior to any Play Store submission or user onboarding.
+
+Requirement
+Implementation Specification
+End-to-End Encryption
+AES-256 encryption applied to all journal entries, voice notes, and AI chat logs in transit and at rest.
+Explicit Consent Gateways
+Mandatory onboarding consent screens requiring affirmative user agreement prior to sharing daily summaries with the assigned therapist.
+Data Deletion Protocol
+One-click data erasure available in user settings, ensuring full compliance with India's Digital Personal Data Protection (DPDP) Act, 2023.
+Clinical Disclaimer (Persistent)
+Non-dismissible UI element displayed throughout the application clarifying that the AI companion is a supportive tool and not a licensed medical professional.
+
+Regulatory Note — DPDP Act Compliance
+All data handling practices must conform to India's Digital Personal Data Protection (DPDP) Act, 2023. The Data Deletion Protocol outlined above is a mandatory compliance requirement and must be fully implemented and independently verified prior to public release.
+
+
+05 — DOCUMENT CONTROL & APPROVAL
+
+
+Role
+Name / Team
+Date
+Status
+Product Owner
+Product Strategy Team
+May 2026
+Approved
+Engineering Lead
+Engineering Team
+—
+Pending Review
+Clinical Advisor
+Clinical Advisory Board
+—
+Pending Review
+Legal & Compliance
+Legal Team
+—
+Pending Review
+
+VERSION HISTORY
+Version
+Date
+Summary of Changes
+Author
+1.0
+May 2026
+Initial MVP PRD — baseline scope defined
+Product Strategy Team
+
+This document is the property of Zenara and is intended solely for internal strategic and engineering use. Distribution outside the organisation requires written authorisation from the Product Owner.

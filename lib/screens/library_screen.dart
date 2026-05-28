@@ -212,7 +212,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               style: GoogleFonts.playfairDisplay(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 2),
@@ -278,7 +278,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             child: TextField(
               controller: _searchController,
               onChanged: (val) => setState(() => _searchQuery = val),
-              style: GoogleFonts.dmSans(color: Colors.white, fontSize: 13.5),
+              style: GoogleFonts.dmSans(color: AppColors.textPrimary, fontSize: 13.5),
               decoration: InputDecoration(
                 hintText: 'Search tools...',
                 hintStyle: GoogleFonts.dmSans(color: AppColors.muted),
@@ -320,7 +320,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: isActive ? Colors.white : AppColors.muted,
+                  color: isActive ? AppColors.textPrimary : AppColors.muted,
                 ),
               ),
             ),
@@ -378,7 +378,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       style: GoogleFonts.dmSans(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -407,7 +407,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   shape: BoxShape.circle,
                   color: AppColors.teal,
                 ),
-                child: const Icon(Icons.play_arrow, color: Colors.white, size: 20),
+                child: const Icon(Icons.play_arrow, color: AppColors.textPrimary, size: 20),
               )
             ],
           )
@@ -483,7 +483,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                         ),
                         child: Icon(
                           icon,
-                          color: isPlaying ? Colors.white : AppColors.tealLight,
+                          color: isPlaying ? AppColors.textPrimary : AppColors.tealLight,
                           size: 22,
                         ),
                       ),
@@ -493,7 +493,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                         style: GoogleFonts.dmSans(
                           fontSize: 11,
                           fontWeight: isPlaying ? FontWeight.bold : FontWeight.normal,
-                          color: isPlaying ? Colors.white : AppColors.tealLight,
+                          color: isPlaying ? AppColors.textPrimary : AppColors.tealLight,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -508,7 +508,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           // Live Volume Slider (shown when sound is playing)
           if (_playingSoundLabel != null) ...[
             const SizedBox(height: 16),
-            const Divider(color: Colors.white10),
+            const Divider(color: AppColors.textPrimary10),
             Row(
               children: [
                 const Icon(Icons.volume_down, color: AppColors.tealLight, size: 16),
@@ -516,7 +516,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   child: SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       activeTrackColor: AppColors.teal,
-                      inactiveTrackColor: Colors.white.withOpacity(0.06),
+                      inactiveTrackColor: AppColors.textPrimary.withOpacity(0.06),
                       trackHeight: 4.0,
                       thumbColor: AppColors.teal,
                       thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5.0),
@@ -582,7 +582,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.white.withOpacity(0.03)),
+                  border: Border.all(color: AppColors.textPrimary.withOpacity(0.03)),
                 ),
                 child: Icon(tool['icon'] as IconData, color: color, size: 20),
               ),
@@ -592,7 +592,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

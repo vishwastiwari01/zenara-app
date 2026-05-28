@@ -82,7 +82,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text(
                 'Delete Personal Data?',
                 style: GoogleFonts.playfairDisplay(
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
                 ),
@@ -116,7 +116,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               child: Text(
                 'Erase Everything',
-                style: GoogleFonts.dmSans(color: Colors.white, fontWeight: FontWeight.bold),
+                style: GoogleFonts.dmSans(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -156,7 +156,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: GoogleFonts.playfairDisplay(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 2),
@@ -244,7 +244,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             style: GoogleFonts.dmSans(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 4),
@@ -267,7 +267,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: TextField(
               controller: _apiKeyController,
               obscureText: _obscureApiKey,
-              style: GoogleFonts.dmSans(color: Colors.white, fontSize: 13.5),
+              style: GoogleFonts.dmSans(color: AppColors.textPrimary, fontSize: 13.5),
               decoration: InputDecoration(
                 hintText: 'sk-ant-api03-...',
                 hintStyle: GoogleFonts.dmSans(color: AppColors.muted),
@@ -294,7 +294,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.purple,
               disabledBackgroundColor: AppColors.purple.withOpacity(0.3),
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.textPrimary,
               minimumSize: const Size(double.infinity, 42),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
@@ -302,7 +302,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ? const SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textPrimary),
                   )
                 : Text(
                     'Save API Key',
@@ -334,7 +334,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],
@@ -389,7 +389,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],
@@ -437,7 +437,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],

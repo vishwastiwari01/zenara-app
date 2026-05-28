@@ -72,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
               style: GoogleFonts.playfairDisplay(
                 fontSize: 26,
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: AppColors.textPrimary,
                 height: 1.2,
               ),
             ),
@@ -151,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: GoogleFonts.dmSans(
                     fontSize: 14,
                     height: 1.5,
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -252,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   label,
                   style: GoogleFonts.dmSans(
                     fontSize: 14,
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -272,7 +272,7 @@ class _HomeScreenState extends State<HomeScreen> {
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
             activeTrackColor: color,
-            inactiveTrackColor: Colors.white.withValues(alpha: 0.07),
+            inactiveTrackColor: AppColors.textPrimary.withValues(alpha: 0.07),
             trackHeight: 8.0,
             thumbColor: color,
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9.0),
@@ -340,9 +340,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     shape: BoxShape.circle,
                     color: selected
                         ? color.withValues(alpha: 0.12)
-                        : Colors.white.withValues(alpha: 0.04),
+                        : AppColors.textPrimary.withValues(alpha: 0.04),
                     border: Border.all(
-                      color: selected ? color : Colors.white.withValues(alpha: 0.12),
+                      color: selected ? color : AppColors.textPrimary.withValues(alpha: 0.12),
                       width: selected ? 2.0 : 1.0,
                     ),
                     boxShadow: selected
@@ -362,7 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         label,
                         style: GoogleFonts.dmSans(
                           fontSize: 12,
-                          color: selected ? Colors.white : AppColors.muted,
+                          color: selected ? AppColors.textPrimary : AppColors.muted,
                           fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                         ),
                         textAlign: TextAlign.center,
@@ -455,7 +455,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         action['label'] as String,
                         style: GoogleFonts.dmSans(
                           fontSize: 11,
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

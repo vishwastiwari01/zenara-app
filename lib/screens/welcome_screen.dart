@@ -376,7 +376,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Let\\'s set up your space.',
+            "Let's set up your space.",
             style: GoogleFonts.dmSans(
               fontSize: 13,
               color: AppColors.muted,

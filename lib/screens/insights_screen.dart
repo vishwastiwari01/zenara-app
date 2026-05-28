@@ -97,7 +97,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
           style: GoogleFonts.playfairDisplay(
             fontSize: 22,
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 2),
@@ -141,7 +141,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   style: GoogleFonts.dmSans(
                     fontSize: 11.5,
                     fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                    color: isActive ? Colors.white : AppColors.muted,
+                    color: isActive ? AppColors.textPrimary : AppColors.muted,
                   ),
                 ),
               ),
@@ -279,7 +279,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: GoogleFonts.dmSans(fontSize: 12.5, color: Colors.white)),
+            Text(label, style: GoogleFonts.dmSans(fontSize: 12.5, color: AppColors.textPrimary)),
             Text('$value%', style: GoogleFonts.dmSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: color)),
           ],
         ),
@@ -291,7 +291,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             child: LinearProgressIndicator(
               value: value / 100.0,
               color: color,
-              backgroundColor: Colors.white.withOpacity(0.05),
+              backgroundColor: AppColors.textPrimary.withOpacity(0.05),
             ),
           ),
         ),
@@ -334,7 +334,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(theme['label'] as String, style: GoogleFonts.dmSans(fontSize: 12.5, color: Colors.white)),
+                          Text(theme['label'] as String, style: GoogleFonts.dmSans(fontSize: 12.5, color: AppColors.textPrimary)),
                           Text('$pct%', style: GoogleFonts.dmSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: color)),
                         ],
                       ),
@@ -346,7 +346,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                           child: LinearProgressIndicator(
                             value: pct / 100.0,
                             color: color,
-                            backgroundColor: Colors.white.withOpacity(0.05),
+                            backgroundColor: AppColors.textPrimary.withOpacity(0.05),
                           ),
                         ),
                       ),
@@ -401,7 +401,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 topic: 'Boundary Setting & Work-Life Separation',
                 notes: 'Dr. Hayes noted: Sarah is practicing asserting boundaries but feels immense guilt. Plan is to address self-worth blocks.',
               ),
-              const Divider(color: Colors.white10, height: 24),
+              const Divider(color: AppColors.textPrimary10, height: 24),
               _buildSessionItem(
                 date: 'May 17, 2026',
                 topic: 'Reframing Imposter Syndrome',
@@ -422,7 +422,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(topic, style: GoogleFonts.dmSans(fontSize: 13.5, fontWeight: FontWeight.bold, color: Colors.white)),
+            Text(topic, style: GoogleFonts.dmSans(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
             Text(date, style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.muted)),
           ],
         ),
@@ -522,7 +522,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                         child: Container(
                           width: 14,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.03),
+                            color: AppColors.textPrimary.withOpacity(0.03),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           alignment: Alignment.bottomCenter,
@@ -580,7 +580,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 13.5,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                 ),
               ),
               Container(
@@ -705,7 +705,7 @@ class MoodTrendPainter extends CustomPainter {
 
     // Draw a glowing dot at today's point (the last point)
     final lastPoint = pathPoints.last;
-    final dotPaint = Paint()..color = Colors.white;
+    final dotPaint = Paint()..color = AppColors.textPrimary;
     final glowPaint = Paint()..color = AppColors.purpleLight.withOpacity(0.5);
 
     canvas.drawCircle(lastPoint, 6, glowPaint);

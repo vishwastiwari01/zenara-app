@@ -1,21 +1,31 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color bg = Color(0xFFF7F9FA); // Light grayish white
-  static const Color bgCard = Color(0xFFFFFFFF); // Pure white for cards
-  static const Color bgGlass = Color(0xD9FFFFFF); // Semi-transparent white
-  static const Color bgElevated = Color(0xFFF0F4F8); // Slightly elevated light gray
-  static const Color purple = Color(0xFF7C6FF7); // Keep brand purple
-  static const Color purpleLight = Color(0xFFA89AF7);
-  static const Color purpleDark = Color(0xFF4A3FA0);
-  static const Color teal = Color(0xFF35B0A6); // Calming teal
-  static const Color tealLight = Color(0xFF83D4CE);
-  static const Color coral = Color(0xFFF06C8A);
-  static const Color pink = Color(0xFFF7A8D4);
-  static const Color peach = Color(0xFFF7C59F);
-  static const Color gold = Color(0xFFF0CA4D);
-  static const Color white = Color(0xFF13102B); // Invert white to dark text
-  static const Color muted = Color(0xFF7B849C); // Muted grayish blue for secondary text
-  static const Color border = Color(0x337C6FF7);
-  static const Color borderSubtle = Color(0x1A7C6FF7);
+  // ─── Core Backgrounds (Light Theme matching design assets) ─────────
+  static const Color bg = Color(0xFFF8FAFC);           // Off-white/slate-50
+  static const Color bgCard = Color(0xFFFFFFFF);        // Pure white cards
+  static const Color bgGlass = Color(0xCCFFFFFF);       // Semi-transparent white
+  static const Color bgElevated = Color(0xFFF1F5F9);    // Elevated/hover elements (slate-100)
+
+  // ─── Brand Colors from Spec ────────────────────────────────────────
+  static const Color purple = Color(0xFF6C5CE7);        // Primary brand purple
+  static const Color purpleLight = Color(0xFF8B5CF6);   // Lighter purple accent
+  static const Color purpleDark = Color(0xFF4B40A0);    // Dark purple
+
+  // ─── Accent Colors from Spec ───────────────────────────────────────
+  static const Color teal = Color(0xFF22D3EE);          // Cyan
+  static const Color tealLight = Color(0xFF67E8F9);     // Light cyan
+  static const Color coral = Color(0xFFF472B6);         // Pink
+  static const Color pink = Color(0xFFF472B6);          // Pink
+  static const Color peach = Color(0xFFFBBF24);         // Yellow/Orange
+  static const Color gold = Color(0xFFFBBF24);          // Yellow/Orange
+
+  // ─── Text & UI Colors ───────────────────────────────────────────
+  static const Color textPrimary = Color(0xFF0F172A);   // Dark slate for main text
+  static const Color white = Color(0xFFFFFFFF);         // Pure white (for text on dark bg)
+  static const Color muted = Color(0xFF64748B);         // Muted secondary text (slate-500)
+
+  // ─── Borders ────────────────────────────────────────────────────
+  static const Color border = Color(0xFFE2E8F0);        // Light slate border (slate-200)
+  static const Color borderSubtle = Color(0xFFF1F5F9);  // Subtle border (slate-100)
 }
