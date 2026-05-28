@@ -319,7 +319,7 @@ class _JournalScreenState extends State<JournalScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
+        physics: _activeInputType == 'doodle' ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,11 +329,11 @@ class _JournalScreenState extends State<JournalScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Journal',
+                  'My Journal',
                   style: GoogleFonts.playfairDisplay(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
                   ),
                 ),
                 Container(
@@ -344,7 +344,7 @@ class _JournalScreenState extends State<JournalScreen> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.border),
                   ),
-                  child: const Icon(Icons.search, color: Colors.white, size: 18),
+                  child: Icon(Icons.search, color: Theme.of(context).textTheme.bodyMedium?.color, size: 18),
                 ),
               ],
             ),
@@ -495,7 +495,7 @@ class _JournalScreenState extends State<JournalScreen> {
                   style: GoogleFonts.dmSans(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
                   ),
                 ),
                 Text(

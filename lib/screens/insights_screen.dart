@@ -97,7 +97,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
           style: GoogleFonts.playfairDisplay(
             fontSize: 22,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).textTheme.bodyMedium?.color,
           ),
         ),
         const SizedBox(height: 2),
@@ -279,7 +279,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: GoogleFonts.dmSans(fontSize: 12.5, color: AppColors.textPrimary)),
+            Text(label, style: GoogleFonts.dmSans(fontSize: 12.5, color: Theme.of(context).textTheme.bodyMedium?.color)),
             Text('$value%', style: GoogleFonts.dmSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: color)),
           ],
         ),
@@ -334,7 +334,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(theme['label'] as String, style: GoogleFonts.dmSans(fontSize: 12.5, color: AppColors.textPrimary)),
+                          Text(theme['label'] as String, style: GoogleFonts.dmSans(fontSize: 12.5, color: Theme.of(context).textTheme.bodyMedium?.color)),
                           Text('$pct%', style: GoogleFonts.dmSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: color)),
                         ],
                       ),
@@ -401,7 +401,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 topic: 'Boundary Setting & Work-Life Separation',
                 notes: 'Dr. Hayes noted: Sarah is practicing asserting boundaries but feels immense guilt. Plan is to address self-worth blocks.',
               ),
-              const Divider(color: AppColors.textPrimary10, height: 24),
+              Divider(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.1), height: 24),
               _buildSessionItem(
                 date: 'May 17, 2026',
                 topic: 'Reframing Imposter Syndrome',
@@ -422,7 +422,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(topic, style: GoogleFonts.dmSans(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            Text(topic, style: GoogleFonts.dmSans(fontSize: 13.5, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyMedium?.color)),
             Text(date, style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.muted)),
           ],
         ),
@@ -522,7 +522,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                         child: Container(
                           width: 14,
                           decoration: BoxDecoration(
-                            color: AppColors.textPrimary.withOpacity(0.03),
+                            color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.03) ?? Colors.transparent,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           alignment: Alignment.bottomCenter,
@@ -580,7 +580,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 13.5,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
               ),
               Container(

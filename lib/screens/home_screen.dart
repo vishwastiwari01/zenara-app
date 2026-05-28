@@ -72,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
               style: GoogleFonts.playfairDisplay(
                 fontSize: 26,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
                 height: 1.2,
               ),
             ),
@@ -151,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: GoogleFonts.dmSans(
                     fontSize: 14,
                     height: 1.5,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -252,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   label,
                   style: GoogleFonts.dmSans(
                     fontSize: 14,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -455,7 +455,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         action['label'] as String,
                         style: GoogleFonts.dmSans(
                           fontSize: 11,
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

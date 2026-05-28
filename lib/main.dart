@@ -13,11 +13,25 @@ import 'screens/insights_screen.dart';
 import 'screens/settings_screen.dart';
 import 'widgets/lotus_logo.dart';
 
-void main() {
+class ThemeState {
+  final ThemeMode themeMode;
+  final Color? customBgColor;
+  ThemeState(this.themeMode, this.customBgColor);
+}
+
+final ValueNotifier<ThemeState> themeNotifier = ValueNotifier(ThemeState(ThemeMode.light, null));
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
+  
+  final prefs = await SharedPreferences.getInstance();
+  final isDark = prefs.getBool('zenara_is_dark') ?? false;
+  final bgVal = prefs.getInt('zenara_custom_bg');
+  themeNotifier.value = ThemeState(isDark ? ThemeMode.dark : ThemeMode.light, bgVal != null ? Color(bgVal) : null);
+  
   runApp(const MyApp());
 }
 
@@ -26,24 +40,50 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Zenara',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        scaffoldBackgroundColor: AppColors.bg,
-        colorScheme: const ColorScheme.dark(
-          primary: AppColors.purple,
-          secondary: AppColors.teal,
-          surface: AppColors.bgCard,
-          onSurface: Colors.white,
-          error: Color(0xFFF472B6),
-        ),
-        textTheme: GoogleFonts.interTextTheme(
-          ThemeData.dark().textTheme,
-        ),
-        dialogBackgroundColor: AppColors.bgCard,
-      ),
-      home: const MainShell(),
+    return ValueListenableBuilder<ThemeState>(
+      valueListenable: themeNotifier,
+      builder: (context, themeState, child) {
+        return MaterialApp(
+          title: 'Zenara',
+          debugShowCheckedModeBanner: false,
+          themeMode: themeState.themeMode,
+          theme: ThemeData(
+            scaffoldBackgroundColor: themeState.customBgColor ?? AppColors.bg,
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.purple,
+              secondary: AppColors.teal,
+              surface: AppColors.bgCard,
+              onSurface: AppColors.textPrimary,
+              error: Color(0xFFF472B6),
+            ),
+            textTheme: GoogleFonts.interTextTheme(
+              ThemeData.light().textTheme,
+            ).apply(
+              bodyColor: AppColors.textPrimary,
+              displayColor: AppColors.textPrimary,
+            ),
+            dialogBackgroundColor: AppColors.bgCard,
+          ),
+          darkTheme: ThemeData(
+            scaffoldBackgroundColor: themeState.customBgColor ?? const Color(0xFF0F172A),
+            colorScheme: const ColorScheme.dark(
+              primary: AppColors.purpleLight,
+              secondary: AppColors.teal,
+              surface: Color(0xFF1E293B),
+              onSurface: Colors.white,
+              error: Color(0xFFF472B6),
+            ),
+            textTheme: GoogleFonts.interTextTheme(
+              ThemeData.dark().textTheme,
+            ).apply(
+              bodyColor: Colors.white,
+              displayColor: Colors.white,
+            ),
+            dialogBackgroundColor: const Color(0xFF1E293B),
+          ),
+          home: const MainShell(),
+        );
+      },
     );
   }
 }
@@ -200,7 +240,7 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-        backgroundColor: AppColors.bg,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -210,7 +250,7 @@ class _MainShellState extends State<MainShell> {
               Text(
                 'Loading Zenara...',
                 style: GoogleFonts.inter(
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -282,7 +322,7 @@ class _MainShellState extends State<MainShell> {
                       Text(
                         'zenara',
                         style: GoogleFonts.playfairDisplay(
-                          color: Colors.white,
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -312,7 +352,7 @@ class _MainShellState extends State<MainShell> {
                       ),
                       child: Icon(
                         Icons.settings,
-                        color: isSettings ? AppColors.purpleLight : Colors.white,
+                        color: isSettings ? AppColors.purpleLight : Theme.of(context).textTheme.bodyMedium?.color,
                         size: 20,
                       ),
                     ),
@@ -332,9 +372,9 @@ class _MainShellState extends State<MainShell> {
             // Bottom Navigation Bar
             Container(
               height: 72,
-              decoration: const BoxDecoration(
-                color: AppColors.bgCard,
-                border: Border(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                border: const Border(
                   top: BorderSide(color: AppColors.border),
                 ),
               ),
@@ -381,8 +421,8 @@ class _MainShellState extends State<MainShell> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.bg,
-                border: Border(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                border: const Border(
                   top: BorderSide(color: AppColors.border, width: 0.5),
                 ),
               ),

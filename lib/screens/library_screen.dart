@@ -212,7 +212,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               style: GoogleFonts.playfairDisplay(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
               ),
             ),
             const SizedBox(height: 2),
@@ -278,7 +278,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             child: TextField(
               controller: _searchController,
               onChanged: (val) => setState(() => _searchQuery = val),
-              style: GoogleFonts.dmSans(color: AppColors.textPrimary, fontSize: 13.5),
+              style: GoogleFonts.dmSans(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 13.5),
               decoration: InputDecoration(
                 hintText: 'Search tools...',
                 hintStyle: GoogleFonts.dmSans(color: AppColors.muted),
@@ -378,7 +378,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       style: GoogleFonts.dmSans(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -407,7 +407,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   shape: BoxShape.circle,
                   color: AppColors.teal,
                 ),
-                child: const Icon(Icons.play_arrow, color: AppColors.textPrimary, size: 20),
+                child: Icon(Icons.play_arrow, color: Theme.of(context).textTheme.bodyMedium?.color, size: 20),
               )
             ],
           )
@@ -508,7 +508,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           // Live Volume Slider (shown when sound is playing)
           if (_playingSoundLabel != null) ...[
             const SizedBox(height: 16),
-            const Divider(color: AppColors.textPrimary10),
+            Divider(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.1)),
             Row(
               children: [
                 const Icon(Icons.volume_down, color: AppColors.tealLight, size: 16),
@@ -582,7 +582,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.textPrimary.withOpacity(0.03)),
+                  border: Border.all(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.03) ?? Colors.transparent),
                 ),
                 child: Icon(tool['icon'] as IconData, color: color, size: 20),
               ),
@@ -592,7 +592,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

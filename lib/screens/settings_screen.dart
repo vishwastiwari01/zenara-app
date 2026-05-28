@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/colors.dart';
+import '../main.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback onDataErased;
@@ -16,11 +17,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final TextEditingController _apiKeyController = TextEditingController();
   bool _obscureApiKey = true;
   bool _savingKey = false;
+  bool _isDarkMode = false;
+  Color? _customBgColor;
+
+  final List<Map<String, dynamic>> _bgColors = [
+    {'name': 'Default (Slate)', 'color': null},
+    {'name': 'Soft Blue', 'color': const Color(0xFFE0F2FE)},
+    {'name': 'Blush Pink', 'color': const Color(0xFFFDF2F8)},
+    {'name': 'Mint Green', 'color': const Color(0xFFECFDF5)},
+    {'name': 'Pure White', 'color': const Color(0xFFFFFFFF)},
+  ];
 
   @override
   void initState() {
     super.initState();
     _loadApiKey();
+    _loadThemePrefs();
+  }
+
+  Future<void> _loadThemePrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isDarkMode = prefs.getBool('zenara_is_dark') ?? false;
+      final bgVal = prefs.getInt('zenara_custom_bg');
+      _customBgColor = bgVal != null ? Color(bgVal) : null;
+    });
+  }
+
+  Future<void> _toggleTheme(bool val) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('zenara_is_dark', val);
+    setState(() => _isDarkMode = val);
+    themeNotifier.value = ThemeState(val ? ThemeMode.dark : ThemeMode.light, _customBgColor);
+  }
+
+  Future<void> _setBgColor(Color? c) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (c == null) {
+      await prefs.remove('zenara_custom_bg');
+    } else {
+      await prefs.setInt('zenara_custom_bg', c.value);
+    }
+    setState(() => _customBgColor = c);
+    themeNotifier.value = ThemeState(_isDarkMode ? ThemeMode.dark : ThemeMode.light, c);
   }
 
   @override
@@ -82,7 +121,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text(
                 'Delete Personal Data?',
                 style: GoogleFonts.playfairDisplay(
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
                 ),
@@ -116,7 +155,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               child: Text(
                 'Erase Everything',
-                style: GoogleFonts.dmSans(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+                style: GoogleFonts.dmSans(color: Theme.of(context).textTheme.bodyMedium?.color, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -156,7 +195,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: GoogleFonts.playfairDisplay(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
               ),
             ),
             const SizedBox(height: 2),
@@ -168,6 +207,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(height: 20),
+
+            // Theme Appearance Card
+            _buildSectionHeader('APPEARANCE'),
+            const SizedBox(height: 10),
+            _buildAppearanceCard(),
+            const SizedBox(height: 24),
 
             // API Config Card
             _buildSectionHeader('AI COMPANION CONFIGURATION'),
@@ -216,6 +261,81 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildAppearanceCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Dark Mode',
+                style: GoogleFonts.dmSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                ),
+              ),
+              Switch(
+                value: _isDarkMode,
+                onChanged: _toggleTheme,
+                activeColor: AppColors.purpleLight,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Background Color',
+            style: GoogleFonts.dmSans(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: _bgColors.map((bg) {
+                final color = bg['color'] as Color?;
+                final isSelected = _customBgColor == color;
+                return GestureDetector(
+                  onTap: () => _setBgColor(color),
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: color ?? AppColors.bg,
+                      border: Border.all(
+                        color: isSelected ? AppColors.purpleLight : AppColors.border,
+                        width: isSelected ? 2.5 : 1,
+                      ),
+                      boxShadow: isSelected
+                          ? [BoxShadow(color: AppColors.purpleLight.withOpacity(0.3), blurRadius: 4)]
+                          : null,
+                    ),
+                    child: color == null 
+                        ? Icon(Icons.format_color_reset, size: 14, color: AppColors.muted)
+                        : null,
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
@@ -244,7 +364,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             style: GoogleFonts.dmSans(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
           ),
           const SizedBox(height: 4),
@@ -267,7 +387,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: TextField(
               controller: _apiKeyController,
               obscureText: _obscureApiKey,
-              style: GoogleFonts.dmSans(color: AppColors.textPrimary, fontSize: 13.5),
+              style: GoogleFonts.dmSans(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 13.5),
               decoration: InputDecoration(
                 hintText: 'sk-ant-api03-...',
                 hintStyle: GoogleFonts.dmSans(color: AppColors.muted),
@@ -299,10 +419,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             child: _savingKey
-                ? const SizedBox(
+                ? SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textPrimary),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).textTheme.bodyMedium?.color),
                   )
                 : Text(
                     'Save API Key',
@@ -334,7 +454,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
               ),
             ],
@@ -389,7 +509,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
               ),
             ],
@@ -437,7 +557,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
               ),
             ],
