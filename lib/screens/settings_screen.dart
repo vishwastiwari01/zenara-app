@@ -290,47 +290,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            'Background Color',
-            style: GoogleFonts.dmSans(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppColors.text(context),
-            ),
-          ),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: _bgColors.map((bg) {
-                final color = bg['color'] as Color?;
-                final isSelected = _customBgColor == color;
-                return GestureDetector(
-                  onTap: () => _setBgColor(color),
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: color ?? AppColors.bg,
-                      border: Border.all(
-                        color: isSelected ? AppColors.purpleLight : (isDark ? AppColors.border : AppColors.borderLight),
-                        width: isSelected ? 2.5 : 1,
-                      ),
-                      boxShadow: isSelected
-                          ? [BoxShadow(color: AppColors.purpleLight.withOpacity(0.3), blurRadius: 4)]
-                          : null,
-                    ),
-                    child: color == null
-                        ? Icon(Icons.format_color_reset, size: 14, color: AppColors.mutedText(context))
-                        : null,
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
         ],
       ),
     );
