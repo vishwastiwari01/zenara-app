@@ -10,6 +10,7 @@ class HomeScreen extends StatefulWidget {
   final Map<String, int> emotionIntensities;
   final ValueChanged<Map<String, int>> onIntensitiesChanged;
   final ValueChanged<String> onNavigate;
+  final String userName;
 
   const HomeScreen({
     Key? key,
@@ -20,6 +21,7 @@ class HomeScreen extends StatefulWidget {
     required this.emotionIntensities,
     required this.onIntensitiesChanged,
     required this.onNavigate,
+    required this.userName,
   }) : super(key: key);
 
   @override
@@ -57,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             // Greeting
             Text(
-              '${_getGreeting()}, Sarah',
+              '${_getGreeting()}, ${widget.userName.isNotEmpty ? widget.userName : "there"}',
               style: GoogleFonts.dmSans(
                 fontSize: 14,
                 color: AppColors.muted,

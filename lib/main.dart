@@ -57,6 +57,7 @@ class _MainShellState extends State<MainShell> {
   bool _loading = true;
   bool _consentGranted = false;
   String _screen = 'home'; // 'home', 'journal', 'nova', 'library', 'therapist', 'settings'
+  String _userName = '';
 
   // Daily User States (Persisted in SharedPreferences)
   Map<String, int> _energy = {'mental': 72, 'physical': 64, 'social': 38};
@@ -75,6 +76,7 @@ class _MainShellState extends State<MainShell> {
       
       // 1. Consent State
       final storedConsent = prefs.getBool('zenara_consent_granted') ?? false;
+      final storedUserName = prefs.getString('zenara_user_name') ?? '';
 
       // 2. Check-In Energy
       final energyJson = prefs.getString('zenara_checkin_energy');
@@ -99,6 +101,7 @@ class _MainShellState extends State<MainShell> {
 
       setState(() {
         _consentGranted = storedConsent;
+        _userName = storedUserName;
         _energy = loadedEnergy;
         _emotions = loadedEmotions;
         _emotionIntensities = loadedIntensities;
@@ -127,8 +130,10 @@ class _MainShellState extends State<MainShell> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('zenara_consent_granted', true);
+      final storedUserName = prefs.getString('zenara_user_name') ?? '';
       setState(() {
         _consentGranted = true;
+        _userName = storedUserName;
         _screen = 'home';
       });
     } catch (e) {
@@ -139,6 +144,7 @@ class _MainShellState extends State<MainShell> {
   void _handleDataErased() {
     setState(() {
       _consentGranted = false;
+      _userName = '';
       _screen = 'home';
       _energy = {'mental': 50, 'physical': 50, 'social': 50};
       _emotions = [];
@@ -430,6 +436,7 @@ class _MainShellState extends State<MainShell> {
             _saveStates();
           },
           onNavigate: _onNavigate,
+          userName: _userName,
         );
     }
   }

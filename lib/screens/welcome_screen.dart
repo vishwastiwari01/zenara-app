@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/colors.dart';
 import '../widgets/lotus_logo.dart';
 
@@ -16,6 +17,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   int _step = 1;
   bool _consentTherapist = false;
   bool _consentDisclaimer = false;
+  
+  final TextEditingController _nameController = TextEditingController();
+  String? _selectedGoal;
+
+  final List<String> _goals = [
+    'Track Mood',
+    'Manage Stress',
+    'Better Sleep',
+    'Build Habits',
+  ];
 
   final List<Map<String, dynamic>> _features = [
     {
@@ -57,7 +68,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       body: SafeArea(
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
-          child: _step == 1 ? _buildStep1() : _buildStep2(),
+          child: _step == 1 ? _buildStep1() : _step == 2 ? _buildStep2() : _buildStep3(),
         ),
       ),
     );
@@ -295,7 +306,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           const SizedBox(height: 28),
           // Enter App Button
           ElevatedButton(
-            onPressed: (_consentTherapist && _consentDisclaimer) ? widget.onConsentGranted : null,
+            onPressed: (_consentTherapist && _consentDisclaimer) ? () => setState(() => _step = 3) : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.purple,
               disabledBackgroundColor: AppColors.purple.withOpacity(0.2),
@@ -310,7 +321,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Accept & Enter App',
+                  'Continue',
                   style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(width: 6),
@@ -330,6 +341,165 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ),
           ),
           const SizedBox(height: 10),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep3() {
+    final canSubmit = _nameController.text.trim().isNotEmpty && _selectedGoal != null;
+    return SingleChildScrollView(
+      key: const ValueKey(3),
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.purple.withOpacity(0.08),
+              border: Border.all(color: AppColors.purple.withOpacity(0.15)),
+            ),
+            child: const LotusLogo(size: 32),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Personalize Zenara',
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Let\\'s set up your space.',
+            style: GoogleFonts.dmSans(
+              fontSize: 13,
+              color: AppColors.muted,
+            ),
+          ),
+          const SizedBox(height: 32),
+          
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'What should we call you?',
+              style: GoogleFonts.dmSans(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _nameController,
+            onChanged: (_) => setState(() {}),
+            style: GoogleFonts.dmSans(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: 'e.g. Sarah',
+              hintStyle: GoogleFonts.dmSans(color: AppColors.muted),
+              filled: true,
+              fillColor: AppColors.bgElevated,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: AppColors.border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: AppColors.border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: AppColors.purple),
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 32),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'What is your primary focus?',
+              style: GoogleFonts.dmSans(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: _goals.map((goal) {
+              final isSelected = _selectedGoal == goal;
+              return GestureDetector(
+                onTap: () => setState(() => _selectedGoal = goal),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.purple : AppColors.bgElevated,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isSelected ? AppColors.purple : AppColors.border,
+                    ),
+                  ),
+                  child: Text(
+                    goal,
+                    style: GoogleFonts.dmSans(
+                      color: isSelected ? Colors.white : AppColors.muted,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          
+          const SizedBox(height: 48),
+          ElevatedButton(
+            onPressed: canSubmit ? () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('zenara_user_name', _nameController.text.trim());
+              await prefs.setString('zenara_primary_goal', _selectedGoal!);
+              widget.onConsentGranted();
+            } : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.purple,
+              disabledBackgroundColor: AppColors.purple.withOpacity(0.2),
+              foregroundColor: Colors.white,
+              disabledForegroundColor: Colors.white.withOpacity(0.4),
+              minimumSize: const Size(double.infinity, 52),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Complete Onboarding',
+                  style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(width: 6),
+                const Icon(Icons.check, size: 16),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: () => setState(() => _step = 2),
+            child: Text(
+              'Back',
+              style: GoogleFonts.dmSans(
+                fontSize: 13,
+                color: AppColors.muted,
+              ),
+            ),
+          ),
         ],
       ),
     );
