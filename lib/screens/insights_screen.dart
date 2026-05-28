@@ -476,7 +476,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            "Sarah's mood has improved by 12% compared to last week. The primary driver of stress remains 'Work', but coping mechanisms (Box Breathing) used on Wednesday and Thursday correlated with a rapid return to baseline.",
+            "${widget.userName.isNotEmpty ? widget.userName : 'Your'}'s mood has improved by 12% compared to last week. The primary driver of stress remains 'Work', but coping mechanisms (Box Breathing) used on Wednesday and Thursday correlated with a rapid return to baseline.",
             style: GoogleFonts.inter(
               fontSize: 14,
               height: 1.6,

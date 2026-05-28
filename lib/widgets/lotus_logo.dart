@@ -18,7 +18,7 @@ class LotusLogo extends StatelessWidget {
     Widget imageWidget = ClipRRect(
       borderRadius: BorderRadius.circular(size * 0.22),
       child: Image.asset(
-        isDark ? 'assets/logo.png' : 'assets/logo2.png',
+        isDark ? 'assets/logo-converted.png' : 'assets/logo2.png',
         width: size,
         height: size,
         fit: BoxFit.cover,

@@ -277,7 +277,7 @@ class _MainShellState extends State<MainShell> {
                     ],
                   ),
                   child: Image.asset(
-                    isDark ? 'assets/logo.png' : 'assets/logo2.png',
+                    isDark ? 'assets/logo-converted.png' : 'assets/logo2.png',
                     width: 80,
                     height: 80,
                   ).animate(onPlay: (controller) => controller.repeat(reverse: true))
@@ -347,7 +347,7 @@ class _MainShellState extends State<MainShell> {
                     children: [
                       Row(
                         children: [
-                          Image.asset(isDark ? 'assets/logo.png' : 'assets/logo2.png', width: 28, height: 28, errorBuilder: (_, __, ___) => const LotusLogo(size: 26)),
+                          Image.asset(isDark ? 'assets/logo-converted.png' : 'assets/logo2.png', width: 28, height: 28, errorBuilder: (_, __, ___) => const LotusLogo(size: 26)),
                           const SizedBox(width: 12),
                           Text(
                             'Zenara',

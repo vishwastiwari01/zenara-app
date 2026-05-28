@@ -44,6 +44,9 @@ class _HomeScreenState extends State<HomeScreen> {
     {'label': 'Grateful', 'color': AppColors.tealLight},
   ];
 
+  int _sleepHours = 7;
+  int _sleepQuality = 80;
+
   String _getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) return 'Good morning';
@@ -89,6 +92,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // Energy Levels
             _buildEnergyCard().animate().fadeIn(delay: 300.ms, duration: 500.ms).slideX(begin: 0.1, curve: Curves.easeOutQuart),
+            const SizedBox(height: 24),
+
+            // Sleep Tracker
+            _buildSleepCard().animate().fadeIn(delay: 350.ms, duration: 500.ms).slideX(begin: 0.1, curve: Curves.easeOutQuart),
             const SizedBox(height: 24),
 
             // Mood Meter
@@ -259,6 +266,107 @@ class _HomeScreenState extends State<HomeScreen> {
           value: value.toDouble(),
           min: 0,
           max: 100,
+          activeColor: color,
+          onChanged: (v) => onChanged(v.toInt()),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSleepCard() {
+    return GlassCard(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'SLEEP TRACKER',
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: AppColors.mutedText(context),
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSleepSlider(
+            label: 'Hours Slept',
+            icon: Icons.nightlight_round,
+            value: _sleepHours,
+            min: 0,
+            max: 12,
+            unit: 'hrs',
+            color: AppColors.purpleLight,
+            onChanged: (val) => setState(() => _sleepHours = val),
+          ),
+          const SizedBox(height: 20),
+          _buildSleepSlider(
+            label: 'Sleep Quality',
+            icon: Icons.star_border,
+            value: _sleepQuality,
+            min: 0,
+            max: 100,
+            unit: '%',
+            color: AppColors.teal,
+            onChanged: (val) => setState(() => _sleepQuality = val),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSleepSlider({
+    required String label,
+    required IconData icon,
+    required int value,
+    required int min,
+    required int max,
+    required String unit,
+    required Color color,
+    required ValueChanged<int> onChanged,
+  }) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: color, size: 18),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    color: AppColors.text(context),
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            Text(
+              '$value$unit',
+              style: GoogleFonts.inter(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        PremiumSlider(
+          value: value.toDouble(),
+          min: min.toDouble(),
+          max: max.toDouble(),
           activeColor: color,
           onChanged: (v) => onChanged(v.toInt()),
         ),
