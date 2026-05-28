@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/colors.dart';
+
 class LotusLogo extends StatelessWidget {
   final double size;
   final bool glow;
@@ -12,10 +14,11 @@ class LotusLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
     Widget imageWidget = ClipRRect(
       borderRadius: BorderRadius.circular(size * 0.22),
       child: Image.asset(
-        'assets/logo.jpeg',
+        isDark ? 'assets/logo.png' : 'assets/logo2.png',
         width: size,
         height: size,
         fit: BoxFit.cover,

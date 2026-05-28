@@ -245,22 +245,56 @@ class _MainShellState extends State<MainShell> {
 
     if (_loading) {
       return Scaffold(
-        backgroundColor: AppColors.background(context),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const LotusLogo(size: 64, glow: true),
-              const SizedBox(height: 18),
-              Text(
-                'Loading Zenara...',
-                style: GoogleFonts.inter(
-                  color: AppColors.text(context),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: isDark
+                ? const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF0B0F19), Color(0xFF130F2A), Color(0xFF0B0F19)],
+                  )
+                : const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFFFFFFFF), Color(0xFFEDE9FE)],
+                  ),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: isDark ? AppColors.purple.withOpacity(0.2) : AppColors.purpleLight.withOpacity(0.1),
+                        blurRadius: 40,
+                        spreadRadius: 10,
+                      )
+                    ],
+                  ),
+                  child: Image.asset(
+                    isDark ? 'assets/logo.png' : 'assets/logo2.png',
+                    width: 80,
+                    height: 80,
+                  ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+                   .scale(begin: const Offset(0.95, 0.95), end: const Offset(1.05, 1.05), duration: 2000.ms, curve: Curves.easeInOut)
+                   .fadeIn(duration: 800.ms),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+                Text(
+                  'Zenara',
+                  style: GoogleFonts.playfairDisplay(
+                    color: AppColors.text(context),
+                    fontSize: 28,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.5,
+                  ),
+                ).animate().fadeIn(delay: 300.ms, duration: 800.ms).slideY(begin: 0.2, end: 0),
+              ],
+            ),
           ),
         ),
       );
@@ -312,7 +346,7 @@ class _MainShellState extends State<MainShell> {
                     children: [
                       Row(
                         children: [
-                          Image.asset('assets/logo.png', width: 28, height: 28, errorBuilder: (_, __, ___) => const LotusLogo(size: 26)),
+                          Image.asset(isDark ? 'assets/logo.png' : 'assets/logo2.png', width: 28, height: 28, errorBuilder: (_, __, ___) => const LotusLogo(size: 26)),
                           const SizedBox(width: 12),
                           Text(
                             'Zenara',
@@ -400,7 +434,7 @@ class _MainShellState extends State<MainShell> {
       case 'library':
         return const LibraryScreen(key: ValueKey('library'));
       case 'therapist':
-        return const InsightsScreen(key: ValueKey('therapist'));
+        return InsightsScreen(key: const ValueKey('therapist'), userName: _userName);
       case 'settings':
         return SettingsScreen(
           key: const ValueKey('settings'),

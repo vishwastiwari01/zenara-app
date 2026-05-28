@@ -253,6 +253,7 @@ class _JournalScreenState extends State<JournalScreen> {
               ),
             ),
           ),
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
     );
@@ -322,8 +323,8 @@ class _JournalScreenState extends State<JournalScreen> {
 
   Widget _buildEditorArea() {
     final isDark = AppColors.isDark(context);
-    return Stack(
-      clipBehavior: Clip.none,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         GlassCard(
           glow: true,
@@ -365,57 +366,54 @@ class _JournalScreenState extends State<JournalScreen> {
                   padding: const EdgeInsets.all(24),
                   child: _buildInputContent(),
                 ),
-                const SizedBox(height: 48), // Padding for floating action button
               ],
             ),
           ),
         ),
         
-        // Floating Save Button
-        Positioned(
-          bottom: -24,
-          right: 24,
-          child: GestureDetector(
-            onTap: _saved ? null : _saveEntry,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: _saved ? [AppColors.teal, AppColors.teal] : [AppColors.purple, AppColors.purpleLight],
+        const SizedBox(height: 24),
+        
+        // Save Button
+        GestureDetector(
+          onTap: _saved ? null : _saveEntry,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: _saved ? [AppColors.teal, AppColors.teal] : [AppColors.purple, AppColors.purpleLight],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: (_saved ? AppColors.teal : AppColors.purple).withOpacity(0.4),
+                  blurRadius: 16,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 8),
                 ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: (_saved ? AppColors.teal : AppColors.purple).withOpacity(0.4),
-                    blurRadius: 16,
-                    spreadRadius: 2,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    _saved ? Icons.check : Icons.save_alt,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _saved ? 'Saved' : 'Save Entry',
-                    style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
+              ],
             ),
-          ).animate().slideY(begin: 1.0, duration: 600.ms, curve: Curves.easeOutBack),
-        ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _saved ? Icons.check : Icons.save_alt,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  _saved ? 'Saved' : 'Save Entry',
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ).animate().slideY(begin: 1.0, duration: 600.ms, curve: Curves.easeOutBack),
       ],
     );
   }

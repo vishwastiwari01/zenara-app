@@ -6,7 +6,9 @@ import '../theme/colors.dart';
 import '../widgets/glass_card.dart';
 
 class InsightsScreen extends StatefulWidget {
-  const InsightsScreen({Key? key}) : super(key: key);
+  final String userName;
+
+  const InsightsScreen({Key? key, required this.userName}) : super(key: key);
 
   @override
   State<InsightsScreen> createState() => _InsightsScreenState();
@@ -88,7 +90,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         ),
         const SizedBox(height: 12),
         Text(
-          'Sarah Johnson',
+          widget.userName.isNotEmpty ? widget.userName : 'Zenara User',
           style: GoogleFonts.playfairDisplay(
             fontSize: 26,
             fontWeight: FontWeight.w600,
@@ -112,24 +114,26 @@ class _InsightsScreenState extends State<InsightsScreen> {
     final isDark = AppColors.isDark(context);
     final List<String> tabs = ['Overview', 'Mood', 'Themes', 'Sessions'];
 
-    return Container(
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.bgGlass : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : AppColors.borderLight),
-      ),
-      child: Row(
-        children: tabs.map((tab) {
-          final isActive = _activeTab == tab;
-          return Expanded(
-            child: GestureDetector(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.bgGlass : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : AppColors.borderLight),
+        ),
+        child: Row(
+          children: tabs.map((tab) {
+            final isActive = _activeTab == tab;
+            return GestureDetector(
               onTap: () => setState(() => _activeTab = tab),
               behavior: HitTestBehavior.opaque,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeOutCubic,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                 decoration: BoxDecoration(
                   color: isActive ? AppColors.purple.withOpacity(isDark ? 0.4 : 0.15) : Colors.transparent,
                   borderRadius: BorderRadius.circular(16),
@@ -147,9 +151,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   ),
                 ),
               ),
-            ),
-          );
-        }).toList(),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -277,6 +281,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             ],
           ),
         ),
+        const SizedBox(height: 100),
       ],
     );
   }
@@ -315,6 +320,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             ],
           ),
         ),
+        const SizedBox(height: 100),
       ],
     );
   }
@@ -377,12 +383,13 @@ class _InsightsScreenState extends State<InsightsScreen> {
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: 32,
+                        reservedSize: 40,
+                        interval: 1,
                         getTitlesWidget: (value, meta) {
                           final index = value.toInt();
                           if (index < 0 || index >= _daysOfWeek.length) return const SizedBox.shrink();
                           return Padding(
-                            padding: const EdgeInsets.only(top: 12.0),
+                            padding: const EdgeInsets.only(top: 14.0),
                             child: Text(
                               _daysOfWeek[index],
                               style: GoogleFonts.inter(color: AppColors.mutedText(context), fontSize: 11),

@@ -164,6 +164,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               ),
             ),
           ),
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
     );

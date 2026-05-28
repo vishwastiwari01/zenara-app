@@ -97,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // Quick Actions
             _buildQuickActionsRow().animate().fadeIn(delay: 500.ms, duration: 500.ms).slideY(begin: 0.2, curve: Curves.easeOutQuart),
-            const SizedBox(height: 40),
+            const SizedBox(height: 100),
           ],
         ),
       ),
