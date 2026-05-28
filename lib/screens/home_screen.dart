@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/colors.dart';
+import '../widgets/glass_card.dart';
+import '../widgets/premium_slider.dart';
+import '../widgets/animated_mood_chip.dart';
 
 class HomeScreen extends StatefulWidget {
   final Map<String, int> energy;
@@ -30,14 +34,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final List<Map<String, dynamic>> _allEmotions = [
-    {'label': 'Calm', 'color': Color(0xFF4ECDC4)},
-    {'label': 'Anxious', 'color': Color(0xFFA89AF7)},
-    {'label': 'Tired', 'color': Color(0xFF7C9ABF)},
-    {'label': 'Hopeful', 'color': Color(0xFFF7C59F)},
-    {'label': 'Overwhelmed', 'color': Color(0xFFF7A8D4)},
-    {'label': 'Happy', 'color': Color(0xFFF7E08A)},
-    {'label': 'Sad', 'color': Color(0xFF7C6FF7)},
-    {'label': 'Grateful', 'color': Color(0xFF4ECDC4)},
+    {'label': 'Calm', 'color': AppColors.teal},
+    {'label': 'Anxious', 'color': AppColors.purpleLight},
+    {'label': 'Tired', 'color': AppColors.muted},
+    {'label': 'Hopeful', 'color': AppColors.peach},
+    {'label': 'Overwhelmed', 'color': AppColors.coral},
+    {'label': 'Happy', 'color': AppColors.gold},
+    {'label': 'Sad', 'color': AppColors.purpleDark},
+    {'label': 'Grateful', 'color': AppColors.tealLight},
   ];
 
   String _getGreeting() {
@@ -53,46 +57,47 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Greeting
+            // Greeting Hero
             Text(
               '${_getGreeting()}, ${widget.userName.isNotEmpty ? widget.userName : "there"}',
-              style: GoogleFonts.dmSans(
+              style: GoogleFonts.inter(
                 fontSize: 14,
-                color: AppColors.muted,
+                color: AppColors.mutedText(context),
                 fontWeight: FontWeight.w500,
+                letterSpacing: 1.1,
               ),
-            ),
-            const SizedBox(height: 6),
+            ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.3, end: 0, duration: 400.ms, curve: Curves.easeOutQuart),
+            const SizedBox(height: 8),
             Text(
               'How are you feeling today?',
               style: GoogleFonts.playfairDisplay(
-                fontSize: 26,
-                fontWeight: FontWeight.w700,
-                color: Theme.of(context).textTheme.bodyMedium?.color,
+                fontSize: 32,
+                fontWeight: FontWeight.w600,
+                color: AppColors.text(context),
                 height: 1.2,
               ),
-            ),
-            const SizedBox(height: 20),
+            ).animate().fadeIn(delay: 100.ms, duration: 500.ms).slideY(begin: 0.3, end: 0, duration: 500.ms, curve: Curves.easeOutQuart),
+            const SizedBox(height: 28),
 
-            // Daily Insight
-            _buildDailyInsightCard(),
-            const SizedBox(height: 16),
+            // Daily Insight Glass Card
+            _buildDailyInsightCard().animate().fadeIn(delay: 200.ms, duration: 500.ms).scale(begin: const Offset(0.95, 0.95), curve: Curves.easeOutBack),
+            const SizedBox(height: 24),
 
             // Energy Levels
-            _buildEnergyCard(),
-            const SizedBox(height: 16),
+            _buildEnergyCard().animate().fadeIn(delay: 300.ms, duration: 500.ms).slideX(begin: 0.1, curve: Curves.easeOutQuart),
+            const SizedBox(height: 24),
 
             // Mood Meter
-            _buildMoodMeterCard(),
-            const SizedBox(height: 16),
+            _buildMoodMeterCard().animate().fadeIn(delay: 400.ms, duration: 500.ms).slideX(begin: 0.1, curve: Curves.easeOutQuart),
+            const SizedBox(height: 24),
 
             // Quick Actions
-            _buildQuickActionsRow(),
-            const SizedBox(height: 28),
+            _buildQuickActionsRow().animate().fadeIn(delay: 500.ms, duration: 500.ms).slideY(begin: 0.2, curve: Curves.easeOutQuart),
+            const SizedBox(height: 40),
           ],
         ),
       ),
@@ -100,58 +105,44 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildDailyInsightCard() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF221B4A), Color(0xFF1A1340)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.purple.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.purple.withValues(alpha: 0.15),
-            blurRadius: 20,
-            spreadRadius: 0,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
+    return GlassCard(
+      glow: true,
+      padding: const EdgeInsets.all(20),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.purple.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.purple.withValues(alpha: 0.3)),
+              color: AppColors.purple.withOpacity(AppColors.isDark(context) ? 0.2 : 0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.purple.withOpacity(0.3)),
             ),
-            child: const Icon(Icons.auto_awesome, color: AppColors.purpleLight, size: 18),
+            child: const Icon(Icons.auto_awesome, color: AppColors.purpleLight, size: 22)
+                .animate(onPlay: (controller) => controller.repeat())
+                .shimmer(duration: 2000.ms, color: Colors.white54),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'DAILY INSIGHT',
-                  style: GoogleFonts.dmSans(
+                  style: GoogleFonts.inter(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: AppColors.purpleLight,
-                    letterSpacing: 1.2,
+                    letterSpacing: 1.5,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Text(
                   'Your anxiety is lower than usual this week. Great job checking in!',
-                  style: GoogleFonts.dmSans(
+                  style: GoogleFonts.inter(
                     fontSize: 14,
                     height: 1.5,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                    color: AppColors.text(context),
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -164,38 +155,33 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildEnergyCard() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.bgGlass,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-      ),
+    return GlassCard(
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'ENERGY LEVELS',
-            style: GoogleFonts.dmSans(
+            style: GoogleFonts.inter(
               fontSize: 11,
               fontWeight: FontWeight.bold,
-              color: AppColors.muted,
+              color: AppColors.mutedText(context),
               letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           _buildEnergySlider(
             label: 'Mental',
             icon: Icons.psychology_outlined,
             value: widget.energy['mental'] ?? 50,
-            color: AppColors.purple,
+            color: AppColors.purpleLight,
             onChanged: (val) {
               final e = Map<String, int>.from(widget.energy);
               e['mental'] = val;
               widget.onEnergyChanged(e);
             },
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
           _buildEnergySlider(
             label: 'Physical',
             icon: Icons.favorite_outline,
@@ -207,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
               widget.onEnergyChanged(e);
             },
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
           _buildEnergySlider(
             label: 'Social',
             icon: Icons.people_outline,
@@ -239,148 +225,83 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               children: [
                 Container(
-                  width: 28,
-                  height: 28,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
+                    color: color.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(icon, color: color, size: 16),
+                  child: Icon(icon, color: color, size: 18),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Text(
                   label,
-                  style: GoogleFonts.dmSans(
-                    fontSize: 14,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  style: GoogleFonts.inter(
+                    color: AppColors.text(context),
                     fontWeight: FontWeight.w500,
+                    fontSize: 14,
                   ),
                 ),
               ],
             ),
             Text(
               '$value%',
-              style: GoogleFonts.dmSans(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
+              style: GoogleFonts.inter(
                 color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: color,
-            inactiveTrackColor: AppColors.textPrimary.withValues(alpha: 0.07),
-            trackHeight: 8.0,
-            thumbColor: color,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9.0),
-            overlayColor: color.withValues(alpha: 0.15),
-            overlayShape: const RoundSliderOverlayShape(overlayRadius: 18.0),
-            trackShape: const RoundedRectSliderTrackShape(),
-          ),
-          child: Slider(
-            value: value.toDouble(),
-            min: 0,
-            max: 100,
-            onChanged: (v) => onChanged(v.round()),
-          ),
+        const SizedBox(height: 10),
+        PremiumSlider(
+          value: value.toDouble(),
+          min: 0,
+          max: 100,
+          activeColor: color,
+          onChanged: (v) => onChanged(v.toInt()),
         ),
       ],
     );
   }
 
   Widget _buildMoodMeterCard() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.bgGlass,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-      ),
+    return GlassCard(
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'MOOD METER',
-            style: GoogleFonts.dmSans(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.muted,
-              letterSpacing: 1.2,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'EMOTIONAL STATE',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.mutedText(context),
+                  letterSpacing: 1.2,
+                ),
+              ),
+              if (widget.emotions.isNotEmpty)
+                Text(
+                  '${widget.emotions.length} selected',
+                  style: GoogleFonts.inter(fontSize: 11, color: AppColors.purpleLight, fontWeight: FontWeight.bold),
+                ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Select up to 5 emotions',
-            style: GoogleFonts.dmSans(
-              fontSize: 13,
-              color: AppColors.muted,
-            ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Wrap(
             spacing: 10,
             runSpacing: 10,
-            children: _allEmotions.map((em) {
-              final label = em['label'] as String;
-              final color = em['color'] as Color;
-              final selected = widget.emotions.contains(label);
-              final intensity = widget.emotionIntensities[label] ?? 50;
-
-              return GestureDetector(
-                onTap: () => widget.onEmotionToggled(label),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeOutCubic,
-                  width: 76,
-                  height: 76,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: selected
-                        ? color.withValues(alpha: 0.12)
-                        : AppColors.textPrimary.withValues(alpha: 0.04),
-                    border: Border.all(
-                      color: selected ? color : AppColors.textPrimary.withValues(alpha: 0.12),
-                      width: selected ? 2.0 : 1.0,
-                    ),
-                    boxShadow: selected
-                        ? [
-                            BoxShadow(
-                              color: color.withValues(alpha: 0.25),
-                              blurRadius: 14,
-                              spreadRadius: 1,
-                            )
-                          ]
-                        : null,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        label,
-                        style: GoogleFonts.dmSans(
-                          fontSize: 12,
-                          color: selected ? AppColors.textPrimary : AppColors.muted,
-                          fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      if (selected) ...[
-                        const SizedBox(height: 3),
-                        Text(
-                          '$intensity%',
-                          style: GoogleFonts.dmSans(
-                            fontSize: 10,
-                            color: color,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ]
-                    ],
-                  ),
-                ),
+            children: _allEmotions.map((mood) {
+              final isSelected = widget.emotions.contains(mood['label']);
+              return AnimatedMoodChip(
+                label: mood['label'] as String,
+                color: mood['color'] as Color,
+                isSelected: isSelected,
+                onTap: () => widget.onEmotionToggled(mood['label'] as String),
               );
             }).toList(),
           ),
@@ -390,83 +311,71 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildQuickActionsRow() {
-    final List<Map<String, dynamic>> items = [
-      {
-        'icon': Icons.menu_book_outlined,
-        'label': 'Journal',
-        'tab': 'journal',
-        'color': AppColors.purple,
-      },
-      {
-        'icon': Icons.forum_outlined,
-        'label': 'Nova',
-        'tab': 'nova',
-        'color': AppColors.purpleLight,
-      },
-      {
-        'icon': Icons.spa_outlined,
-        'label': 'Library',
-        'tab': 'library',
-        'color': AppColors.teal,
-      },
-      {
-        'icon': Icons.analytics_outlined,
-        'label': 'Insights',
-        'tab': 'therapist',
-        'color': AppColors.gold,
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        Text(
-          'QUICK ACTIONS',
-          style: GoogleFonts.dmSans(
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-            color: AppColors.muted,
-            letterSpacing: 1.2,
+        Expanded(
+          child: _buildActionCard(
+            title: 'Journal',
+            subtitle: 'Clear your mind',
+            icon: Icons.edit_note,
+            color: AppColors.purpleLight,
+            onTap: () => widget.onNavigate('journal'),
           ),
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: items.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final action = entry.value;
-            final Color color = action['color'] as Color;
-
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => widget.onNavigate(action['tab'] as String),
-                child: Container(
-                  margin: EdgeInsets.only(right: idx < items.length - 1 ? 10 : 0),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: color.withValues(alpha: 0.2)),
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(action['icon'] as IconData, color: color, size: 22),
-                      const SizedBox(height: 6),
-                      Text(
-                        action['label'] as String,
-                        style: GoogleFonts.dmSans(
-                          fontSize: 11,
-                          color: Theme.of(context).textTheme.bodyMedium?.color,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildActionCard(
+            title: 'Breathe',
+            subtitle: 'Take a pause',
+            icon: Icons.air,
+            color: AppColors.teal,
+            onTap: () => widget.onNavigate('library'),
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildActionCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GlassCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: GoogleFonts.inter(
+              color: AppColors.text(context),
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: GoogleFonts.inter(
+              color: AppColors.mutedText(context),
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

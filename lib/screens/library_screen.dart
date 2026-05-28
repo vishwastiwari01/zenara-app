@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/colors.dart';
+import '../widgets/glass_card.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({Key? key}) : super(key: key);
@@ -23,102 +25,27 @@ class _LibraryScreenState extends State<LibraryScreen> {
   final List<String> _categories = ["All", "Breathing", "Grounding", "Sleep", "Focus"];
 
   final List<Map<String, dynamic>> _sounds = [
-    {
-      'label': 'Ocean',
-      'icon': Icons.waves,
-      'url': 'https://www.soundjay.com/nature/sounds/ocean-wave-1.mp3',
-    },
-    {
-      'label': 'Rain',
-      'icon': Icons.grain,
-      'url': 'https://www.soundjay.com/nature/sounds/rain-07.mp3',
-    },
-    {
-      'label': 'Fire',
-      'icon': Icons.local_fire_department,
-      'url': 'https://www.soundjay.com/nature/sounds/fire-1.mp3',
-    },
-    {
-      'label': 'Forest',
-      'icon': Icons.forest,
-      'url': 'https://www.soundjay.com/nature/sounds/river-1.mp3',
-    },
+    {'label': 'Ocean', 'icon': Icons.waves, 'url': 'https://www.soundjay.com/nature/sounds/ocean-wave-1.mp3'},
+    {'label': 'Rain', 'icon': Icons.grain, 'url': 'https://www.soundjay.com/nature/sounds/rain-07.mp3'},
+    {'label': 'Fire', 'icon': Icons.local_fire_department, 'url': 'https://www.soundjay.com/nature/sounds/fire-1.mp3'},
+    {'label': 'Forest', 'icon': Icons.forest, 'url': 'https://www.soundjay.com/nature/sounds/river-1.mp3'},
   ];
 
   final List<Map<String, dynamic>> _copingTools = [
-    {
-      'id': '1',
-      'icon': Icons.waves,
-      'title': 'Sound Bath',
-      'subtitle': 'Calming frequencies',
-      'time': '5 min',
-      'tag': 'Sleep',
-      'color': Color(0xFF4ECDC4)
-    },
-    {
-      'id': '2',
-      'icon': Icons.air,
-      'title': 'Box Breathing',
-      'subtitle': 'Calm your mind and reduce stress',
-      'time': '4 min',
-      'tag': 'Breathing',
-      'color': Color(0xFFA89AF7)
-    },
-    {
-      'id': '3',
-      'icon': Icons.forest,
-      'title': 'Body Scan',
-      'subtitle': 'Reconnect with your body',
-      'time': '10 min',
-      'tag': 'Grounding',
-      'color': Color(0xFFF7C59F)
-    },
-    {
-      'id': '4',
-      'icon': Icons.auto_awesome,
-      'title': 'Affirmations',
-      'subtitle': 'Positive daily reminders',
-      'time': '3 min',
-      'tag': 'Focus',
-      'color': Color(0xFFF7A8D4)
-    },
-    {
-      'id': '5',
-      'icon': Icons.pin_drop,
-      'title': 'Grounding 5-4-3-2-1',
-      'subtitle': 'Anchor yourself in the present',
-      'time': '6 min',
-      'tag': 'Grounding',
-      'color': Color(0xFF4ECDC4)
-    },
-    {
-      'id': '6',
-      'icon': Icons.nightlight_outlined,
-      'title': 'Sleep Story',
-      'subtitle': 'Drift into peaceful rest',
-      'time': '20 min',
-      'tag': 'Sleep',
-      'color': Color(0xFF7C6FF7)
-    },
-    {
-      'id': '7',
-      'icon': Icons.spa,
-      'title': 'Mindful Breathing',
-      'subtitle': 'Slow, intentional breath',
-      'time': '7 min',
-      'tag': 'Breathing',
-      'color': Color(0xFFA89AF7)
-    },
-    {
-      'id': '8',
-      'icon': Icons.self_improvement,
-      'title': 'Somatic Exercises',
-      'subtitle': 'Release stored tension',
-      'time': '12 min',
-      'tag': 'Focus',
-      'color': Color(0xFFF7E08A)
-    },
+    {'id': '1', 'icon': Icons.waves, 'title': 'Sound Bath', 'subtitle': 'Calming frequencies', 'time': '5 min', 'tag': 'Sleep', 'color': AppColors.teal},
+    {'id': '2', 'icon': Icons.air, 'title': 'Box Breathing', 'subtitle': 'Calm your mind and reduce stress', 'time': '4 min', 'tag': 'Breathing', 'color': AppColors.purpleLight},
+    {'id': '3', 'icon': Icons.forest, 'title': 'Body Scan', 'subtitle': 'Reconnect with your body', 'time': '10 min', 'tag': 'Grounding', 'color': AppColors.peach},
+    {'id': '4', 'icon': Icons.auto_awesome, 'title': 'Affirmations', 'subtitle': 'Positive daily reminders', 'time': '3 min', 'tag': 'Focus', 'color': AppColors.coral},
+    {'id': '5', 'icon': Icons.pin_drop, 'title': 'Grounding 5-4-3-2-1', 'subtitle': 'Anchor yourself in the present', 'time': '6 min', 'tag': 'Grounding', 'color': AppColors.teal},
+    {'id': '6', 'icon': Icons.nightlight_outlined, 'title': 'Sleep Story', 'subtitle': 'Drift into peaceful rest', 'time': '20 min', 'tag': 'Sleep', 'color': AppColors.purpleDark},
   ];
+
+  Future<void> _changeVolume(double val) async {
+    setState(() {
+      _volume = val;
+    });
+    await _audioPlayer.setVolume(val);
+  }
 
   @override
   void initState() {
@@ -127,9 +54,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     _audioPlayer.setVolume(_volume);
     _audioPlayer.onPlayerStateChanged.listen((state) {
       if (state == PlayerState.playing) {
-        setState(() {
-          _audioLoading = false;
-        });
+        if (mounted) setState(() => _audioLoading = false);
       }
     });
   }
@@ -156,7 +81,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
           _audioLoading = false;
         });
       } catch (e) {
-        print("Failed to stop audio: $e");
         setState(() => _audioLoading = false);
       }
       return;
@@ -173,7 +97,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
       await _audioPlayer.play(UrlSource(url));
     } catch (e) {
-      print("Error playing audio: $e");
       setState(() {
         _playingSoundLabel = null;
         _audioLoading = false;
@@ -181,16 +104,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
     }
   }
 
-  Future<void> _changeVolume(double val) async {
-    setState(() {
-      _volume = val;
-    });
-    await _audioPlayer.setVolume(val);
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Filter tools
     final filteredTools = _copingTools.where((t) {
       final matchesTab = _activeTab == 'All' || t['tag'] == _activeTab;
       final matchesSearch = t['title'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -200,230 +115,217 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SingleChildScrollView(
+      body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                _buildHeader().animate().fadeIn(duration: 400.ms).slideY(begin: -0.2),
+                const SizedBox(height: 24),
+                _buildSearchBar().animate().fadeIn(delay: 100.ms, duration: 400.ms),
+                const SizedBox(height: 24),
+                _buildCategoryTabs().animate().fadeIn(delay: 200.ms, duration: 400.ms).slideX(begin: 0.1),
+                const SizedBox(height: 24),
+                if (_searchQuery.isEmpty)
+                  _buildRecommendedCard().animate().fadeIn(delay: 300.ms, duration: 400.ms).scale(begin: const Offset(0.9, 0.9)),
+                if (_searchQuery.isEmpty) const SizedBox(height: 24),
+                _buildSoundboard().animate().fadeIn(delay: 400.ms, duration: 400.ms).slideY(begin: 0.2),
+                const SizedBox(height: 24),
+                Text(
+                  'ALL COPING TOOLS',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.mutedText(context),
+                    letterSpacing: 1.5,
+                  ),
+                ).animate().fadeIn(delay: 500.ms),
+                const SizedBox(height: 16),
+              ]),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 0.85,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return _buildToolCard(filteredTools[index])
+                      .animate().fadeIn(delay: Duration(milliseconds: 300 + (index * 100))).slideY(begin: 0.1);
+                },
+                childCount: filteredTools.length,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Safe Space',
+          style: GoogleFonts.playfairDisplay(
+            fontSize: 26,
+            fontWeight: FontWeight.w600,
+            color: AppColors.text(context),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Coping Library',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: AppColors.mutedText(context),
+            letterSpacing: 1.1,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchBar() {
+    final isDark = AppColors.isDark(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? Colors.white.withOpacity(0.1) : AppColors.borderLight),
+        boxShadow: isDark
+            ? []
+            : [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: TextField(
+        controller: _searchController,
+        style: GoogleFonts.inter(color: AppColors.text(context), fontSize: 15),
+        onChanged: (val) {
+          setState(() {
+            _searchQuery = val;
+          });
+        },
+        decoration: InputDecoration(
+          icon: Icon(Icons.search, color: AppColors.mutedText(context)),
+          hintText: 'Search tools, exercises...',
+          hintStyle: GoogleFonts.inter(color: AppColors.mutedText(context).withOpacity(0.6)),
+          border: InputBorder.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryTabs() {
+    final isDark = AppColors.isDark(context);
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        children: _categories.map((cat) {
+          final isActive = _activeTab == cat;
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _activeTab = cat;
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: isActive ? AppColors.purple : (isDark ? Colors.white.withOpacity(0.05) : Colors.white),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isActive ? Colors.transparent : (isDark ? Colors.white.withOpacity(0.1) : AppColors.borderLight),
+                ),
+                boxShadow: isActive ? [BoxShadow(color: AppColors.purple.withOpacity(0.3), blurRadius: 12)] : [],
+              ),
+              child: Text(
+                cat,
+                style: GoogleFonts.inter(
+                  color: isActive ? Colors.white : AppColors.mutedText(context),
+                  fontSize: 13,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildRecommendedCard() {
+    final isDark = AppColors.isDark(context);
+    return GlassCard(
+      glow: true,
+      padding: const EdgeInsets.all(0),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isDark
+                ? [AppColors.purple.withOpacity(0.6), AppColors.purpleDark.withOpacity(0.6)]
+                : [AppColors.purple.withOpacity(0.8), AppColors.purpleDark.withOpacity(0.8)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Row(
           children: [
-            // Header
-            Text(
-              'Safe Space',
-              style: GoogleFonts.playfairDisplay(
-                fontSize: 22,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).textTheme.bodyMedium?.color,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text('RECOMMENDED', style: GoogleFonts.inter(fontSize: 9, color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Box Breathing',
+                    style: GoogleFonts.playfairDisplay(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '4 minutes • Reduce anxiety instantly',
+                    style: GoogleFonts.inter(fontSize: 12, color: Colors.white.withOpacity(0.8)),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)]),
+                    child: const Icon(Icons.play_arrow_rounded, color: AppColors.purple, size: 24),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 2),
-            Text(
-              'Coping Library',
-              style: GoogleFonts.dmSans(
-                fontSize: 13,
-                color: AppColors.muted,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Search Bar
-            _buildSearchBar(),
-            const SizedBox(height: 16),
-
-            // Category Tab Scroll
-            _buildCategoryTabs(),
-            const SizedBox(height: 16),
-
-            // Recommended Card
-            if (_searchQuery.isEmpty) _buildRecommendedCard(),
-            if (_searchQuery.isEmpty) const SizedBox(height: 20),
-
-            // Soundboard Card
-            _buildSoundboard(),
-            const SizedBox(height: 20),
-
-            // All Coping Tools Header
-            Text(
-              'ALL COPING TOOLS',
-              style: GoogleFonts.dmSans(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: AppColors.muted,
-                letterSpacing: 1.0,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Grid List of Tools
-            _buildToolsGrid(filteredTools),
-            const SizedBox(height: 24),
+            Icon(Icons.air, color: Colors.white.withOpacity(0.3), size: 100),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSearchBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.bgCard.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Row(
-        children: [
-          const Icon(Icons.search, color: AppColors.muted, size: 16),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              onChanged: (val) => setState(() => _searchQuery = val),
-              style: GoogleFonts.dmSans(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 13.5),
-              decoration: InputDecoration(
-                hintText: 'Search tools...',
-                hintStyle: GoogleFonts.dmSans(color: AppColors.muted),
-                border: InputBorder.none,
-                isDense: true,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCategoryTabs() {
-    return SizedBox(
-      height: 38,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        itemCount: _categories.length,
-        itemBuilder: (context, index) {
-          final tab = _categories[index];
-          final isActive = _activeTab == tab;
-
-          return GestureDetector(
-            onTap: () => setState(() => _activeTab = tab),
-            child: Container(
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: isActive ? AppColors.purple : AppColors.bgCard.withOpacity(0.6),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isActive ? AppColors.purple : AppColors.border,
-                ),
-              ),
-              child: Text(
-                tab,
-                style: GoogleFonts.dmSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: isActive ? AppColors.textPrimary : AppColors.muted,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildRecommendedCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF112424), // Premium deep green/teal glow
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.teal.withOpacity(0.22)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.teal.withOpacity(0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.teal.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: AppColors.teal.withOpacity(0.25)),
-            ),
-            child: Text(
-              'RECOMMENDED FOR YOU',
-              style: GoogleFonts.dmSans(
-                fontSize: 9,
-                fontWeight: FontWeight.bold,
-                color: AppColors.tealLight,
-                letterSpacing: 1.0,
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Box Breathing',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Calm your mind & reduce stress',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 12,
-                        color: AppColors.tealLight,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '⏱ 4 min',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 11,
-                        color: AppColors.muted,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                width: 44,
-                height: 44,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.teal,
-                ),
-                child: Icon(Icons.play_arrow, color: Theme.of(context).textTheme.bodyMedium?.color, size: 20),
-              )
-            ],
-          )
-        ],
-      ),
-    );
-  }
-
   Widget _buildSoundboard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xCC0D2A2A), // deep green/teal background
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.teal.withOpacity(0.2)),
-      ),
+    final isDark = AppColors.isDark(context);
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -431,96 +333,81 @@ class _LibraryScreenState extends State<LibraryScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'SENSORY RESET SOUNDBOARD',
-                style: GoogleFonts.dmSans(
+                'AMBIENT SOUNDS',
+                style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.tealLight,
-                  letterSpacing: 1.0,
+                  color: AppColors.mutedText(context),
+                  letterSpacing: 1.5,
                 ),
               ),
-              if (_audioLoading)
+              if (_playingSoundLabel != null && _audioLoading)
                 const SizedBox(
                   width: 12,
                   height: 12,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.tealLight),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.purpleLight),
                 )
             ],
           ),
-          const SizedBox(height: 14),
-
-          // Sound Grid
+          const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: _sounds.map((sound) {
-              final label = sound['label'] as String;
-              final icon = sound['icon'] as IconData;
-              final isPlaying = _playingSoundLabel == label;
-
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () => _handleSoundPress(sound),
-                  child: Column(
-                    children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          color: isPlaying ? AppColors.teal.withOpacity(0.25) : AppColors.teal.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isPlaying ? AppColors.teal : AppColors.teal.withOpacity(0.2),
-                          ),
-                          boxShadow: isPlaying
-                              ? [
-                                  BoxShadow(
-                                    color: AppColors.teal.withOpacity(0.4),
-                                    blurRadius: 10,
-                                  )
-                                ]
-                              : null,
+              final isPlaying = _playingSoundLabel == sound['label'];
+              return GestureDetector(
+                onTap: () => _handleSoundPress(sound),
+                child: Column(
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: isPlaying
+                            ? AppColors.teal.withOpacity(0.2)
+                            : (isDark ? Colors.white.withOpacity(0.05) : AppColors.bgElevatedLight),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isPlaying
+                              ? AppColors.teal
+                              : (isDark ? Colors.white.withOpacity(0.1) : AppColors.borderLight),
+                          width: isPlaying ? 2 : 1,
                         ),
-                        child: Icon(
-                          icon,
-                          color: isPlaying ? AppColors.textPrimary : AppColors.tealLight,
-                          size: 22,
-                        ),
+                        boxShadow: isPlaying ? [BoxShadow(color: AppColors.teal.withOpacity(0.3), blurRadius: 12)] : [],
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        '$label ${isPlaying ? "🔊" : ""}',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 11,
-                          fontWeight: isPlaying ? FontWeight.bold : FontWeight.normal,
-                          color: isPlaying ? AppColors.textPrimary : AppColors.tealLight,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      child: Icon(
+                        sound['icon'] as IconData,
+                        color: isPlaying ? AppColors.teal : AppColors.mutedText(context),
+                        size: 24,
                       ),
-                    ],
-                  ),
+                    ).animate(target: isPlaying ? 1 : 0).shimmer(duration: 1.seconds, color: Colors.white54),
+                    const SizedBox(height: 8),
+                    Text(
+                      sound['label'] as String,
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: isPlaying ? AppColors.text(context) : AppColors.mutedText(context),
+                        fontWeight: isPlaying ? FontWeight.w600 : FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               );
             }).toList(),
           ),
-
-          // Live Volume Slider (shown when sound is playing)
           if (_playingSoundLabel != null) ...[
-            const SizedBox(height: 16),
-            Divider(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.1)),
+            const SizedBox(height: 24),
             Row(
               children: [
-                const Icon(Icons.volume_down, color: AppColors.tealLight, size: 16),
+                Icon(Icons.volume_down_rounded, color: AppColors.mutedText(context), size: 20),
                 Expanded(
                   child: SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       activeTrackColor: AppColors.teal,
-                      inactiveTrackColor: AppColors.textPrimary.withOpacity(0.06),
-                      trackHeight: 4.0,
-                      thumbColor: AppColors.teal,
-                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5.0),
-                      overlayColor: AppColors.teal.withOpacity(0.12),
+                      inactiveTrackColor: isDark ? Colors.white.withOpacity(0.1) : AppColors.borderLight,
+                      thumbColor: Colors.white,
+                      trackHeight: 4,
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
                     ),
                     child: Slider(
                       value: _volume,
@@ -530,108 +417,66 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     ),
                   ),
                 ),
-                const Icon(Icons.volume_up, color: AppColors.tealLight, size: 16),
+                Icon(Icons.volume_up_rounded, color: AppColors.mutedText(context), size: 20),
               ],
-            ),
+            ).animate().fadeIn(duration: 400.ms),
           ]
         ],
       ),
     );
   }
 
-  Widget _buildToolsGrid(List<Map<String, dynamic>> tools) {
-    if (tools.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 40.0),
-          child: Text(
-            'No tools match your query.',
-            style: GoogleFonts.dmSans(color: AppColors.muted, fontSize: 13),
-          ),
-        ),
-      );
-    }
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.9,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemCount: tools.length,
-      itemBuilder: (context, index) {
-        final tool = tools[index];
-        final Color color = tool['color'] as Color;
-
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.bgCard.withOpacity(0.7),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildToolCard(Map<String, dynamic> tool) {
+    final Color color = tool['color'] as Color;
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                width: 36,
-                height: 36,
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.03) ?? Colors.transparent),
+                  color: color.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: color.withOpacity(0.3)),
                 ),
                 child: Icon(tool['icon'] as IconData, color: color, size: 20),
               ),
-              const SizedBox(height: 10),
               Text(
-                tool['title'] as String,
-                style: GoogleFonts.dmSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 2),
-              Expanded(
-                child: Text(
-                  tool['subtitle'] as String,
-                  style: GoogleFonts.dmSans(
-                    fontSize: 11,
-                    color: AppColors.muted,
-                    height: 1.3,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                tool['time'] as String,
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.mutedText(context),
                 ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    tool['time'] as String,
-                    style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.muted),
-                  ),
-                  Container(
-                    width: 26,
-                    height: 26,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: color.withOpacity(0.12),
-                    ),
-                    child: Icon(Icons.play_arrow, color: color, size: 12),
-                  )
-                ],
-              )
             ],
           ),
-        );
-      },
+          const Spacer(),
+          Text(
+            tool['title'] as String,
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: AppColors.text(context),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            tool['subtitle'] as String,
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              color: AppColors.mutedText(context),
+              height: 1.3,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 }

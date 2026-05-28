@@ -9,10 +9,11 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/colors.dart';
-import '../widgets/lotus_logo.dart';
-import '../widgets/doodle_canvas.dart';
+import '../widgets/glass_card.dart';
 import '../models/journal_entry.dart';
+import 'doodle_screen.dart';
 
 class JournalScreen extends StatefulWidget {
   const JournalScreen({Key? key}) : super(key: key);
@@ -36,16 +37,14 @@ class _JournalScreenState extends State<JournalScreen> {
   int _recordingDuration = 0;
   Timer? _recordingTimer;
 
-  // Image
+  // Image & Doodle
   final ImagePicker _imagePicker = ImagePicker();
   File? _pickedImage;
+  File? _doodleImage;
 
   // List / Checklist
   final List<Map<String, dynamic>> _checklistItems = [];
   final TextEditingController _checklistController = TextEditingController();
-
-  // Doodle
-  final GlobalKey<DoodleCanvasState> _doodleKey = GlobalKey();
 
   final List<String> _prompts = [
     '"What made you smile today?"',
@@ -92,7 +91,6 @@ class _JournalScreenState extends State<JournalScreen> {
     final defaults = [
       JournalEntry(id: "1", date: "May 25, 2026", text: "Feeling more grounded today. The breathing exercise really helped with the presentation anxiety...", tagColorHex: "#4ECDC4"),
       JournalEntry(id: "2", date: "May 24, 2026", text: "Hard day. Couldn't focus at all. Nova helped me break down the tasks into smaller pieces...", tagColorHex: "#7C9ABF"),
-      JournalEntry(id: "3", date: "May 23, 2026", text: "Really good session with Dr. Hayes today. We talked about boundary setting and I feel...", tagColorHex: "#F7E08A"),
     ];
     setState(() { _entries = defaults; });
     _saveEntriesToPrefs(defaults);
@@ -103,20 +101,13 @@ class _JournalScreenState extends State<JournalScreen> {
     await prefs.setString('zenara_journal_entries', json.encode(list.map((e) => e.toJson()).toList()));
   }
 
-  String _formatCurrentDate() {
-    final now = DateTime.now();
-    final months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return '${months[now.month - 1]} ${now.day}, ${now.year}';
-  }
-
   String _getTodayLong() {
     final now = DateTime.now();
     final months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     return '${months[now.month - 1]} ${now.day}, ${now.year}';
   }
 
-  // ─── Voice Recording ──────────────────────────────────────────────────
-
+  // Voice logic
   Future<void> _toggleRecording() async {
     if (_isRecording) {
       await _stopRecording();
@@ -127,39 +118,20 @@ class _JournalScreenState extends State<JournalScreen> {
 
   Future<void> _startRecording() async {
     final status = await Permission.microphone.request();
-    if (!status.isGranted) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Microphone permission required', style: GoogleFonts.dmSans()),
-            backgroundColor: AppColors.coral,
-          ),
-        );
-      }
-      return;
-    }
-
+    if (!status.isGranted) return;
     try {
       final dir = await getTemporaryDirectory();
       final path = '${dir.path}/zenara_voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
-
-      await _recorder.start(
-        const RecordConfig(encoder: AudioEncoder.aacLc),
-        path: path,
-      );
-
+      await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: path);
       setState(() {
         _isRecording = true;
         _recordingDuration = 0;
         _voiceRecordingPath = path;
       });
-
       _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
         setState(() => _recordingDuration++);
       });
-    } catch (e) {
-      debugPrint("Error starting recording: $e");
-    }
+    } catch (e) { debugPrint("Error: $e"); }
   }
 
   Future<void> _stopRecording() async {
@@ -172,145 +144,81 @@ class _JournalScreenState extends State<JournalScreen> {
       });
     } catch (e) {
       setState(() => _isRecording = false);
-      debugPrint("Error stopping recording: $e");
     }
   }
 
   Future<void> _playVoiceRecording() async {
     if (_voiceRecordingPath == null) return;
-
     if (_isPlayingVoice) {
       await _audioPlayer.stop();
       setState(() => _isPlayingVoice = false);
       return;
     }
-
     try {
       await _audioPlayer.play(DeviceFileSource(_voiceRecordingPath!));
       setState(() => _isPlayingVoice = true);
       _audioPlayer.onPlayerComplete.listen((_) {
         if (mounted) setState(() => _isPlayingVoice = false);
       });
-    } catch (e) {
-      debugPrint("Error playing voice: $e");
-    }
+    } catch (e) { debugPrint("Error: $e"); }
   }
 
-  // ─── Image Picker ─────────────────────────────────────────────────────
-
-  Future<void> _pickImage(ImageSource source) async {
+  // Image logic
+  Future<void> _pickImage() async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: source,
-        maxWidth: 1200,
-        maxHeight: 1200,
-        imageQuality: 85,
-      );
+      final XFile? image = await _imagePicker.pickImage(source: ImageSource.gallery);
       if (image != null) {
         setState(() {
           _pickedImage = File(image.path);
         });
       }
-    } catch (e) {
-      debugPrint("Error picking image: $e");
+    } catch (e) { debugPrint("Error picking image: $e"); }
+  }
+
+  Future<void> _openDoodleScreen() async {
+    final File? result = await Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const DoodleScreen()),
+    );
+    if (result != null) {
+      setState(() {
+        _doodleImage = result;
+      });
     }
   }
 
-  // ─── Save ─────────────────────────────────────────────────────────────
+  void _saveEntry() {
+    if (_textController.text.trim().isEmpty && _voiceRecordingPath == null && _pickedImage == null && _doodleImage == null && _checklistItems.isEmpty) return;
 
-  Future<void> _handleSave() async {
-    String entryText = '';
-    String tagColor = '#7C6FF7';
-    final sm = ScaffoldMessenger.of(context);
-
-    switch (_activeInputType) {
-      case 'text':
-        entryText = _textController.text.trim();
-        if (entryText.isEmpty) {
-          sm.showSnackBar(SnackBar(
-            content: Text('Please write something before saving.', style: GoogleFonts.dmSans()),
-            backgroundColor: AppColors.coral,
-          ));
-          return;
-        }
-        break;
-      case 'voice':
-        if (_voiceRecordingPath == null) {
-          sm.showSnackBar(SnackBar(
-            content: Text('Please record a voice note first.', style: GoogleFonts.dmSans()),
-            backgroundColor: AppColors.coral,
-          ));
-          return;
-        }
-        entryText = '🎙 Voice note recorded (${_recordingDuration}s)';
-        tagColor = '#35B0A6';
-        break;
-      case 'image':
-        if (_pickedImage == null && _textController.text.trim().isEmpty) {
-          sm.showSnackBar(SnackBar(
-            content: Text('Please add an image or caption.', style: GoogleFonts.dmSans()),
-            backgroundColor: AppColors.coral,
-          ));
-          return;
-        }
-        entryText = _pickedImage != null
-            ? '📷 Photo entry${_textController.text.trim().isNotEmpty ? ": ${_textController.text.trim()}" : ""}'
-            : _textController.text.trim();
-        tagColor = '#F7C59F';
-        break;
-      case 'doodle':
-        final canvasState = _doodleKey.currentState;
-        if (canvasState == null || !canvasState.hasContent) {
-          sm.showSnackBar(SnackBar(
-            content: Text('Please draw something before saving.', style: GoogleFonts.dmSans()),
-            backgroundColor: AppColors.coral,
-          ));
-          return;
-        }
-        entryText = '🎨 Doodle entry${_textController.text.trim().isNotEmpty ? ": ${_textController.text.trim()}" : ""}';
-        tagColor = '#F7A8D4';
-        break;
-      case 'list':
-        final completed = _checklistItems.where((i) => i['done'] == true).length;
-        if (_checklistItems.isEmpty) {
-          sm.showSnackBar(SnackBar(
-            content: Text('Please add some checklist items.', style: GoogleFonts.dmSans()),
-            backgroundColor: AppColors.coral,
-          ));
-          return;
-        }
-        entryText = '☑ Checklist ($completed/${_checklistItems.length} done): ${_checklistItems.map((i) => "${i['done'] ? '✓' : '○'} ${i['text']}").join(', ')}';
-        tagColor = '#A89AF7';
-        break;
-    }
-
-    final newEntry = JournalEntry(
+    final entry = JournalEntry(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      date: _formatCurrentDate(),
-      text: entryText,
-      tagColorHex: tagColor,
+      date: "${DateTime.now().month}/${DateTime.now().day}/${DateTime.now().year}",
+      text: _textController.text.trim(),
+      tagColorHex: "#6C5CE7",
+      voicePath: _voiceRecordingPath,
+      imagePath: _pickedImage?.path ?? _doodleImage?.path,
+      checklist: _checklistItems.isNotEmpty ? _checklistItems : null,
+      doodleBytes: null, // we now save doodles as regular image paths
     );
 
-    final updated = [newEntry, ..._entries];
     setState(() {
-      _entries = updated;
-      _textController.clear();
+      _entries.insert(0, entry);
       _saved = true;
+      _textController.clear();
       _voiceRecordingPath = null;
       _pickedImage = null;
+      _doodleImage = null;
       _checklistItems.clear();
-      _doodleKey.currentState?.clear();
+      _activeInputType = 'text';
     });
-    await _saveEntriesToPrefs(updated);
 
-    sm.showSnackBar(SnackBar(
-      content: Text('Entry saved ✓', style: GoogleFonts.dmSans()),
-      backgroundColor: AppColors.teal,
-      duration: const Duration(seconds: 2),
-    ));
+    _saveEntriesToPrefs(_entries);
 
-    Timer(const Duration(seconds: 2), () {
-      if (mounted) setState(() => _saved = false);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _saved = false;
+        });
+      }
     });
   }
 
@@ -318,284 +226,31 @@ class _JournalScreenState extends State<JournalScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SingleChildScrollView(
-        physics: _activeInputType == 'doodle' ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'My Journal',
-                  style: GoogleFonts.playfairDisplay(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
-                ),
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: AppColors.bgGlass,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Icon(Icons.search, color: Theme.of(context).textTheme.bodyMedium?.color, size: 18),
-                ),
-              ],
-            ),
-            const SizedBox(height: 18),
-
-            // My Journal Banner
-            _buildMyJournalBanner(),
-            const SizedBox(height: 16),
-
-            // Today Input
-            _buildTodaySection(),
-            const SizedBox(height: 20),
-
-            // Past Entries
-            if (_entries.isNotEmpty) ...[
-              Text(
-                'PAST ENTRIES',
-                style: GoogleFonts.dmSans(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.muted,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(height: 12),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _entries.length,
-                itemBuilder: (context, index) => _buildEntryCard(_entries[index]),
-              ),
-            ],
-            const SizedBox(height: 28),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMyJournalBanner() {
-    return Container(
-      height: 112,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF3D2C8D), Color(0xFF1E1060), Color(0xFF121030)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.purple.withValues(alpha: 0.35)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.purple.withValues(alpha: 0.2),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'MY MOON JOURNAL',
-                style: GoogleFonts.dmSans(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.teal,
-                  letterSpacing: 1.4,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                '${_entries.length} entries',
-                style: GoogleFonts.playfairDisplay(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-          Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.center,
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.08),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-                ),
-                child: const Center(child: LotusLogo(size: 34)),
-              ),
-              Positioned(
-                top: -6,
-                right: -4,
-                child: const Icon(Icons.star, size: 12, color: AppColors.gold),
-              ),
-              Positioned(
-                bottom: -2,
-                left: -8,
-                child: const Icon(Icons.star, size: 9, color: AppColors.purpleLight),
-              ),
-              Positioned(
-                top: 8,
-                left: -14,
-                child: Container(
-                  width: 5,
-                  height: 5,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.tealLight,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTodaySection() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.bgGlass,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Today header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 16, 18, 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Today',
-                  style: GoogleFonts.dmSans(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
-                ),
-                Text(
-                  _getTodayLong(),
-                  style: GoogleFonts.dmSans(
-                    fontSize: 12,
-                    color: AppColors.muted,
-                  ),
-                ),
-              ],
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                _buildHeader().animate().fadeIn(duration: 400.ms).slideY(begin: -0.2),
+                const SizedBox(height: 24),
+                _buildEditorArea().animate().fadeIn(delay: 100.ms, duration: 500.ms).slideY(begin: 0.1, curve: Curves.easeOutQuart),
+                const SizedBox(height: 32),
+                _buildPastEntriesHeader().animate().fadeIn(delay: 200.ms),
+              ]),
             ),
           ),
-          const SizedBox(height: 12),
-
-          // Rotating prompt
-          GestureDetector(
-            onTap: () => setState(() => _promptIdx = (_promptIdx + 1) % _prompts.length),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 14),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: AppColors.bgElevated,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return _buildPastEntryCard(_entries[index])
+                      .animate().fadeIn(delay: Duration(milliseconds: 300 + (index * 100))).slideY(begin: 0.1);
+                },
+                childCount: _entries.length,
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      _prompts[_promptIdx],
-                      style: GoogleFonts.dmSans(
-                        fontSize: 13.5,
-                        color: AppColors.muted,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  const Icon(Icons.refresh_rounded, color: AppColors.muted, size: 18),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Dynamic content area based on active input type
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            child: _buildActiveInputArea(),
-          ),
-          const SizedBox(height: 14),
-
-          // Divider
-          Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
-
-          // Toolbar
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            child: Row(
-              children: [
-                _buildToolbarBtn(Icons.edit_note_outlined, 'text', AppColors.purple),
-                const SizedBox(width: 8),
-                _buildToolbarBtn(Icons.mic_none_outlined, 'voice', AppColors.teal),
-                const SizedBox(width: 8),
-                _buildToolbarBtn(Icons.image_outlined, 'image', AppColors.peach),
-                const SizedBox(width: 8),
-                _buildToolbarBtn(Icons.brush_outlined, 'doodle', AppColors.pink),
-                const SizedBox(width: 8),
-                _buildToolbarBtn(Icons.format_list_bulleted, 'list', AppColors.purpleLight),
-                const Spacer(),
-                // Save button
-                GestureDetector(
-                  onTap: _handleSave,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppColors.purple, AppColors.purpleDark],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.purple.withValues(alpha: 0.35),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        )
-                      ],
-                    ),
-                    child: Text(
-                      _saved ? 'Saved ✓' : 'Save',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
             ),
           ),
         ],
@@ -603,448 +258,509 @@ class _JournalScreenState extends State<JournalScreen> {
     );
   }
 
-  Widget _buildActiveInputArea() {
-    switch (_activeInputType) {
-      case 'voice':
-        return _buildVoiceInput();
-      case 'image':
-        return _buildImageInput();
-      case 'doodle':
-        return _buildDoodleInput();
-      case 'list':
-        return _buildListInput();
-      case 'text':
-      default:
-        return _buildTextInput();
-    }
-  }
-
-  // ─── Text Input ───────────────────────────────────────────────────────
-  Widget _buildTextInput() {
-    return TextField(
-      controller: _textController,
-      maxLines: 6,
-      minLines: 5,
-      style: GoogleFonts.dmSans(
-        color: Colors.white,
-        fontSize: 14,
-        height: 1.6,
-      ),
-      decoration: InputDecoration(
-        hintText: 'How are you feeling right now?',
-        hintStyle: GoogleFonts.dmSans(
-          color: AppColors.muted.withValues(alpha: 0.6),
-          fontSize: 14,
-        ),
-        border: InputBorder.none,
-        isDense: true,
-        contentPadding: EdgeInsets.zero,
-      ),
-    );
-  }
-
-  // ─── Voice Input ──────────────────────────────────────────────────────
-  Widget _buildVoiceInput() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          // Recording circle
-          GestureDetector(
-            onTap: _toggleRecording,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _isRecording
-                    ? AppColors.coral.withOpacity(0.15)
-                    : AppColors.teal.withOpacity(0.1),
-                border: Border.all(
-                  color: _isRecording ? AppColors.coral : AppColors.teal,
-                  width: 2,
-                ),
-                boxShadow: _isRecording
-                    ? [BoxShadow(color: AppColors.coral.withOpacity(0.3), blurRadius: 16)]
-                    : null,
-              ),
-              child: Icon(
-                _isRecording ? Icons.stop : Icons.mic,
-                color: _isRecording ? AppColors.coral : AppColors.teal,
-                size: 32,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Status text
-          Text(
-            _isRecording
-                ? 'Recording... ${_recordingDuration}s'
-                : _voiceRecordingPath != null
-                    ? 'Voice note recorded (${_recordingDuration}s)'
-                    : 'Tap to start recording',
-            style: GoogleFonts.dmSans(
-              fontSize: 13,
-              color: _isRecording ? AppColors.coral : AppColors.muted,
-              fontWeight: _isRecording ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-
-          // Playback button
-          if (_voiceRecordingPath != null && !_isRecording) ...[
-            const SizedBox(height: 12),
-            GestureDetector(
-              onTap: _playVoiceRecording,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.teal.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.teal.withOpacity(0.3)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _isPlayingVoice ? Icons.pause : Icons.play_arrow,
-                      color: AppColors.teal,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _isPlayingVoice ? 'Pause' : 'Play',
-                      style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.teal, fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-
-          // Waveform visualization
-          if (_isRecording) ...[
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 40,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(20, (i) {
-                  return AnimatedContainer(
-                    duration: Duration(milliseconds: 100 + i * 20),
-                    margin: const EdgeInsets.symmetric(horizontal: 1.5),
-                    width: 3,
-                    height: (8 + (i % 5) * 6 + (_recordingDuration % 3) * 4).toDouble(),
-                    decoration: BoxDecoration(
-                      color: AppColors.teal.withOpacity(0.6 + (i % 3) * 0.15),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  );
-                }),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  // ─── Image Input ──────────────────────────────────────────────────────
-  Widget _buildImageInput() {
+  Widget _buildHeader() {
+    final isDark = AppColors.isDark(context);
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (_pickedImage != null) ...[
-          ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: Image.file(
-              _pickedImage!,
-              height: 200,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Remove image
-          GestureDetector(
-            onTap: () => setState(() => _pickedImage = null),
-            child: Text(
-              'Remove image',
-              style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.coral),
-            ),
-          ),
-          const SizedBox(height: 8),
-        ],
-
-        // Pick image buttons
-        if (_pickedImage == null)
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => _pickImage(ImageSource.gallery),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 40),
-                    decoration: BoxDecoration(
-                      color: AppColors.bgElevated,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.peach.withOpacity(0.2)),
-                    ),
-                    child: Column(
-                      children: [
-                        Icon(Icons.photo_library_outlined, color: AppColors.peach, size: 32),
-                        const SizedBox(height: 6),
-                        Text('Gallery', style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.muted)),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => _pickImage(ImageSource.camera),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 40),
-                    decoration: BoxDecoration(
-                      color: AppColors.bgElevated,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.peach.withOpacity(0.2)),
-                    ),
-                    child: Column(
-                      children: [
-                        Icon(Icons.camera_alt_outlined, color: AppColors.peach, size: 32),
-                        const SizedBox(height: 6),
-                        Text('Camera', style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.muted)),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-        if (_pickedImage != null) ...[
-          const SizedBox(height: 8),
-          TextField(
-            controller: _textController,
-            maxLines: 2,
-            style: GoogleFonts.dmSans(color: Colors.white, fontSize: 14, height: 1.6),
-            decoration: InputDecoration(
-              hintText: 'Add a caption...',
-              hintStyle: GoogleFonts.dmSans(color: AppColors.muted.withValues(alpha: 0.6), fontSize: 14),
-              border: InputBorder.none,
-              isDense: true,
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  // ─── Doodle Input ─────────────────────────────────────────────────────
-  Widget _buildDoodleInput() {
-    return Column(
-      children: [
-        DoodleCanvas(key: _doodleKey),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _textController,
-          maxLines: 2,
-          style: GoogleFonts.dmSans(color: Colors.white, fontSize: 14, height: 1.6),
-          decoration: InputDecoration(
-            hintText: 'Add a note about your doodle...',
-            hintStyle: GoogleFonts.dmSans(color: AppColors.muted.withValues(alpha: 0.6), fontSize: 14),
-            border: InputBorder.none,
-            isDense: true,
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ─── List / Checklist Input ───────────────────────────────────────────
-  Widget _buildListInput() {
-    return Column(
-      children: [
-        // Add item row
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Expanded(
-              child: TextField(
-                controller: _checklistController,
-                style: GoogleFonts.dmSans(color: Colors.white, fontSize: 14),
-                decoration: InputDecoration(
-                  hintText: 'Add item...',
-                  hintStyle: GoogleFonts.dmSans(color: AppColors.muted.withValues(alpha: 0.6)),
-                  border: InputBorder.none,
-                  isDense: true,
-                ),
-                onSubmitted: (_) => _addChecklistItem(),
-              ),
-            ),
-            GestureDetector(
-              onTap: _addChecklistItem,
-              child: Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: AppColors.purpleLight.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.purpleLight.withOpacity(0.3)),
-                ),
-                child: const Icon(Icons.add, color: AppColors.purpleLight, size: 18),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-
-        // Checklist items
-        if (_checklistItems.isNotEmpty)
-          ...List.generate(_checklistItems.length, (index) {
-            final item = _checklistItems[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _checklistItems[index]['done'] = !item['done'];
-                      });
-                    },
-                    child: Container(
-                      width: 22,
-                      height: 22,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        color: item['done'] ? AppColors.purple : Colors.transparent,
-                        border: Border.all(
-                          color: item['done'] ? AppColors.purple : AppColors.muted,
-                          width: 1.5,
-                        ),
-                      ),
-                      child: item['done']
-                          ? const Icon(Icons.check, size: 14, color: Colors.white)
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      item['text'],
-                      style: GoogleFonts.dmSans(
-                        fontSize: 13.5,
-                        color: item['done'] ? AppColors.muted : Colors.white,
-                        decoration: item['done'] ? TextDecoration.lineThrough : null,
-                      ),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() => _checklistItems.removeAt(index));
-                    },
-                    child: const Icon(Icons.close, color: AppColors.muted, size: 16),
-                  ),
-                ],
-              ),
-            );
-          }),
-
-        if (_checklistItems.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Text(
-              'Add items to your checklist above',
-              style: GoogleFonts.dmSans(fontSize: 13, color: AppColors.muted),
-            ),
-          ),
-      ],
-    );
-  }
-
-  void _addChecklistItem() {
-    final text = _checklistController.text.trim();
-    if (text.isEmpty) return;
-    setState(() {
-      _checklistItems.add({'text': text, 'done': false});
-      _checklistController.clear();
-    });
-  }
-
-  Widget _buildToolbarBtn(IconData icon, String type, Color color) {
-    final isActive = _activeInputType == type;
-    return GestureDetector(
-      onTap: () => setState(() => _activeInputType = type),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: isActive ? color.withValues(alpha: 0.18) : AppColors.bgElevated,
-          borderRadius: BorderRadius.circular(11),
-          border: Border.all(
-            color: isActive ? color.withValues(alpha: 0.5) : AppColors.border,
-          ),
-        ),
-        child: Icon(icon, color: isActive ? color : AppColors.muted, size: 18),
-      ),
-    );
-  }
-
-  Widget _buildEntryCard(JournalEntry entry) {
-    final bulletColor = Color(int.parse(entry.tagColorHex.replaceFirst('#', '0xFF')));
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.bgGlass,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 4),
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: bulletColor,
-              boxShadow: [
-                BoxShadow(
-                  color: bulletColor.withValues(alpha: 0.5),
-                  blurRadius: 6,
-                )
-              ],
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  entry.date,
-                  style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.muted),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  entry.text,
-                  style: GoogleFonts.dmSans(
-                    fontSize: 13.5,
-                    color: Colors.white,
-                    height: 1.5,
+                  'MY JOURNAL',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.purpleLight,
+                    letterSpacing: 1.5,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _getTodayLong(),
+                  style: GoogleFonts.playfairDisplay(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.text(context),
+                  ),
                 ),
               ],
             ),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _promptIdx = (_promptIdx + 1) % _prompts.length;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.purple.withOpacity(0.15) : AppColors.purple.withOpacity(0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.refresh, color: AppColors.purpleLight, size: 20),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          _prompts[_promptIdx],
+          style: GoogleFonts.playfairDisplay(
+            fontSize: 20,
+            fontStyle: FontStyle.italic,
+            color: AppColors.mutedText(context),
           ),
-        ],
+        ).animate(key: ValueKey(_promptIdx)).fadeIn(duration: 300.ms).slideX(begin: 0.1),
+      ],
+    );
+  }
+
+  Widget _buildEditorArea() {
+    final isDark = AppColors.isDark(context);
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        GlassCard(
+          glow: true,
+          padding: const EdgeInsets.all(0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.bgCard.withOpacity(0.4) : Colors.white,
+              borderRadius: BorderRadius.circular(22),
+            ),
+            child: Column(
+              children: [
+                // Toolbar
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    border: Border(bottom: BorderSide(color: isDark ? Colors.white.withOpacity(0.05) : AppColors.borderLight)),
+                  ),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: [
+                        _buildToolIcon(Icons.text_fields, 'text'),
+                        const SizedBox(width: 8),
+                        _buildToolIcon(Icons.mic_none, 'voice'),
+                        const SizedBox(width: 8),
+                        _buildToolIcon(Icons.image_outlined, 'image'),
+                        const SizedBox(width: 8),
+                        _buildToolIcon(Icons.checklist, 'list'),
+                        const SizedBox(width: 8),
+                        _buildToolIcon(Icons.brush, 'doodle'),
+                      ],
+                    ),
+                  ),
+                ),
+                // Input Area
+                Container(
+                  constraints: const BoxConstraints(minHeight: 220),
+                  padding: const EdgeInsets.all(24),
+                  child: _buildInputContent(),
+                ),
+                const SizedBox(height: 48), // Padding for floating action button
+              ],
+            ),
+          ),
+        ),
+        
+        // Floating Save Button
+        Positioned(
+          bottom: -24,
+          right: 24,
+          child: GestureDetector(
+            onTap: _saved ? null : _saveEntry,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: _saved ? [AppColors.teal, AppColors.teal] : [AppColors.purple, AppColors.purpleLight],
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: (_saved ? AppColors.teal : AppColors.purple).withOpacity(0.4),
+                    blurRadius: 16,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _saved ? Icons.check : Icons.save_alt,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _saved ? 'Saved' : 'Save Entry',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ).animate().slideY(begin: 1.0, duration: 600.ms, curve: Curves.easeOutBack),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildToolIcon(IconData icon, String type) {
+    final isActive = _activeInputType == type;
+    return GestureDetector(
+      onTap: () {
+        if (type == 'doodle') {
+          _openDoodleScreen();
+        } else {
+          setState(() => _activeInputType = type);
+        }
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.purple.withOpacity(0.2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isActive ? AppColors.purple.withOpacity(0.5) : Colors.transparent,
+          ),
+        ),
+        child: Icon(
+          icon,
+          size: 20,
+          color: isActive ? AppColors.purpleLight : AppColors.mutedText(context),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputContent() {
+    final isDark = AppColors.isDark(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_doodleImage != null)
+          Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.file(_doodleImage!, width: double.infinity, fit: BoxFit.contain),
+                ),
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: GestureDetector(
+                  onTap: () => setState(() => _doodleImage = null),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(color: isDark ? Colors.black54 : Colors.black38, shape: BoxShape.circle),
+                    child: const Icon(Icons.close, color: Colors.white, size: 16),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        
+        _buildActiveInputWidget(),
+      ],
+    );
+  }
+
+  Widget _buildActiveInputWidget() {
+    final isDark = AppColors.isDark(context);
+    switch (_activeInputType) {
+      case 'text':
+        return TextField(
+          controller: _textController,
+          maxLines: null,
+          style: GoogleFonts.inter(color: AppColors.text(context), height: 1.6, fontSize: 16),
+          decoration: InputDecoration(
+            hintText: "Start writing here...",
+            hintStyle: GoogleFonts.inter(color: AppColors.mutedText(context).withOpacity(0.5)),
+            border: InputBorder.none,
+          ),
+        );
+      case 'voice':
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                onTap: _toggleRecording,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _isRecording ? AppColors.coral.withOpacity(0.2) : AppColors.purple.withOpacity(0.1),
+                    border: Border.all(
+                      color: _isRecording
+                          ? AppColors.coral
+                          : isDark
+                              ? AppColors.purple.withOpacity(0.3)
+                              : AppColors.purple.withOpacity(0.4),
+                      width: 2,
+                    ),
+                    boxShadow: _isRecording ? [BoxShadow(color: AppColors.coral.withOpacity(0.3), blurRadius: 20)] : [],
+                  ),
+                  child: Icon(
+                    _isRecording ? Icons.stop : Icons.mic,
+                    color: _isRecording ? AppColors.coral : AppColors.purpleLight,
+                    size: 32,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (_isRecording)
+                Text(
+                  '00:${_recordingDuration.toString().padLeft(2, '0')}',
+                  style: GoogleFonts.inter(color: AppColors.coral, fontSize: 18, fontWeight: FontWeight.bold),
+                ).animate(onPlay: (controller) => controller.repeat(reverse: true)).fadeIn(duration: 1.seconds),
+              if (!_isRecording && _voiceRecordingPath != null)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(_isPlayingVoice ? Icons.pause_circle_filled : Icons.play_circle_fill),
+                      color: AppColors.teal,
+                      iconSize: 40,
+                      onPressed: _playVoiceRecording,
+                    ),
+                    Text("Recording saved", style: GoogleFonts.inter(color: AppColors.teal)),
+                  ],
+                ),
+            ],
+          ),
+        );
+      case 'image':
+        return Center(
+          child: _pickedImage != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.file(_pickedImage!, height: 200, fit: BoxFit.cover),
+                )
+              : GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    height: 150,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withOpacity(0.02) : AppColors.bgElevatedLight,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: isDark ? Colors.white.withOpacity(0.1) : AppColors.borderLight, style: BorderStyle.solid),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add_photo_alternate_outlined, color: AppColors.mutedText(context), size: 40),
+                        const SizedBox(height: 8),
+                        Text("Tap to upload photo", style: GoogleFonts.inter(color: AppColors.mutedText(context))),
+                      ],
+                    ),
+                  ),
+                ),
+        );
+      case 'list':
+        return Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _checklistController,
+                    style: GoogleFonts.inter(color: AppColors.text(context)),
+                    decoration: InputDecoration(
+                      hintText: "Add a new item...",
+                      hintStyle: GoogleFonts.inter(color: AppColors.mutedText(context)),
+                      border: InputBorder.none,
+                    ),
+                    onSubmitted: (val) {
+                      if (val.isNotEmpty) {
+                        setState(() {
+                          _checklistItems.add({'text': val, 'done': false});
+                          _checklistController.clear();
+                        });
+                      }
+                    },
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add_circle, color: AppColors.purpleLight),
+                  onPressed: () {
+                    if (_checklistController.text.isNotEmpty) {
+                      setState(() {
+                        _checklistItems.add({'text': _checklistController.text, 'done': false});
+                        _checklistController.clear();
+                      });
+                    }
+                  },
+                )
+              ],
+            ),
+            Divider(color: isDark ? Colors.white10 : AppColors.borderLight),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _checklistItems.length,
+              itemBuilder: (context, i) {
+                return CheckboxListTile(
+                  title: Text(
+                    _checklistItems[i]['text'],
+                    style: GoogleFonts.inter(
+                      color: AppColors.text(context),
+                      decoration: _checklistItems[i]['done'] ? TextDecoration.lineThrough : null,
+                    ),
+                  ),
+                  value: _checklistItems[i]['done'],
+                  activeColor: AppColors.teal,
+                  onChanged: (val) {
+                    setState(() => _checklistItems[i]['done'] = val);
+                  },
+                );
+              },
+            ),
+          ],
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildPastEntriesHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'PAST ENTRIES',
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: AppColors.mutedText(context),
+            letterSpacing: 1.5,
+          ),
+        ),
+        Icon(Icons.filter_list, color: AppColors.mutedText(context), size: 18),
+      ],
+    );
+  }
+
+  Widget _buildPastEntryCard(JournalEntry entry) {
+    final Color tagColor = AppColors.teal;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: GlassCard(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: tagColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  entry.date,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.mutedText(context),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (entry.text != null && entry.text!.isNotEmpty)
+              Text(
+                entry.text!,
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  height: 1.6,
+                  color: AppColors.text(context),
+                ),
+              ),
+            if (entry.voicePath != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.purpleLight.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.mic, color: AppColors.purpleLight, size: 18),
+                    ),
+                    const SizedBox(width: 12),
+                    Text("Voice Note", style: GoogleFonts.inter(color: AppColors.purpleLight, fontSize: 13, fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ),
+            if (entry.imagePath != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.file(File(entry.imagePath!), width: double.infinity, fit: BoxFit.cover),
+                ),
+              ),
+            if (entry.checklist != null && entry.checklist!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: entry.checklist!.map((c) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Row(
+                        children: [
+                          Icon(
+                            c['done'] ? Icons.check_circle : Icons.radio_button_unchecked,
+                            color: c['done'] ? AppColors.teal : AppColors.mutedText(context),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            c['text'],
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: c['done'] ? AppColors.mutedText(context) : AppColors.text(context),
+                              decoration: c['done'] ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

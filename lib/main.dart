@@ -12,6 +12,7 @@ import 'screens/library_screen.dart';
 import 'screens/insights_screen.dart';
 import 'screens/settings_screen.dart';
 import 'widgets/lotus_logo.dart';
+import 'widgets/floating_nav_bar.dart';
 
 class ThemeState {
   final ThemeMode themeMode;
@@ -19,19 +20,19 @@ class ThemeState {
   ThemeState(this.themeMode, this.customBgColor);
 }
 
-final ValueNotifier<ThemeState> themeNotifier = ValueNotifier(ThemeState(ThemeMode.light, null));
+final ValueNotifier<ThemeState> themeNotifier = ValueNotifier(ThemeState(ThemeMode.dark, null));
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
-  
+
+  // Load saved theme preference
   final prefs = await SharedPreferences.getInstance();
-  final isDark = prefs.getBool('zenara_is_dark') ?? false;
-  final bgVal = prefs.getInt('zenara_custom_bg');
-  themeNotifier.value = ThemeState(isDark ? ThemeMode.dark : ThemeMode.light, bgVal != null ? Color(bgVal) : null);
-  
+  final isDark = prefs.getBool('zenara_is_dark') ?? true;
+  themeNotifier.value = ThemeState(isDark ? ThemeMode.dark : ThemeMode.light, null);
+
   runApp(const MyApp());
 }
 
@@ -42,44 +43,54 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeState>(
       valueListenable: themeNotifier,
-      builder: (context, themeState, child) {
+      builder: (context, themeState, _) {
+        // System chrome based on theme
+        final isDark = themeState.themeMode == ThemeMode.dark;
+        SystemChrome.setSystemUIOverlayStyle(
+          isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+        );
+
         return MaterialApp(
           title: 'Zenara',
           debugShowCheckedModeBanner: false,
           themeMode: themeState.themeMode,
           theme: ThemeData(
-            scaffoldBackgroundColor: themeState.customBgColor ?? AppColors.bg,
+            useMaterial3: true,
+            brightness: Brightness.light,
+            scaffoldBackgroundColor: AppColors.bgLight,
             colorScheme: const ColorScheme.light(
+              primary: AppColors.purple,
+              secondary: AppColors.teal,
+              surface: AppColors.bgCardLight,
+              onSurface: AppColors.textPrimaryLight,
+              error: AppColors.coral,
+            ),
+            textTheme: GoogleFonts.interTextTheme(
+              ThemeData.light().textTheme,
+            ).apply(
+              bodyColor: AppColors.textPrimaryLight,
+              displayColor: AppColors.textPrimaryLight,
+            ),
+            dialogBackgroundColor: AppColors.bgCardLight,
+          ),
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.dark,
+            scaffoldBackgroundColor: AppColors.bg,
+            colorScheme: const ColorScheme.dark(
               primary: AppColors.purple,
               secondary: AppColors.teal,
               surface: AppColors.bgCard,
               onSurface: AppColors.textPrimary,
-              error: Color(0xFFF472B6),
+              error: AppColors.coral,
             ),
             textTheme: GoogleFonts.interTextTheme(
-              ThemeData.light().textTheme,
+              ThemeData.dark().textTheme,
             ).apply(
               bodyColor: AppColors.textPrimary,
               displayColor: AppColors.textPrimary,
             ),
             dialogBackgroundColor: AppColors.bgCard,
-          ),
-          darkTheme: ThemeData(
-            scaffoldBackgroundColor: themeState.customBgColor ?? const Color(0xFF0F172A),
-            colorScheme: const ColorScheme.dark(
-              primary: AppColors.purpleLight,
-              secondary: AppColors.teal,
-              surface: Color(0xFF1E293B),
-              onSurface: Colors.white,
-              error: Color(0xFFF472B6),
-            ),
-            textTheme: GoogleFonts.interTextTheme(
-              ThemeData.dark().textTheme,
-            ).apply(
-              bodyColor: Colors.white,
-              displayColor: Colors.white,
-            ),
-            dialogBackgroundColor: const Color(0xFF1E293B),
           ),
           home: const MainShell(),
         );
@@ -98,10 +109,9 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   bool _loading = true;
   bool _consentGranted = false;
-  String _screen = 'home'; // 'home', 'journal', 'nova', 'library', 'therapist', 'settings'
+  String _screen = 'home';
   String _userName = '';
 
-  // Daily User States (Persisted in SharedPreferences)
   Map<String, int> _energy = {'mental': 72, 'physical': 64, 'social': 38};
   List<String> _emotions = ['Calm', 'Anxious', 'Overwhelmed'];
   Map<String, int> _emotionIntensities = {'Calm': 60, 'Anxious': 45, 'Overwhelmed': 75};
@@ -115,26 +125,21 @@ class _MainShellState extends State<MainShell> {
   Future<void> _loadStates() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
-      // 1. Consent State
       final storedConsent = prefs.getBool('zenara_consent_granted') ?? false;
       final storedUserName = prefs.getString('zenara_user_name') ?? '';
 
-      // 2. Check-In Energy
       final energyJson = prefs.getString('zenara_checkin_energy');
       Map<String, int> loadedEnergy = {'mental': 72, 'physical': 64, 'social': 38};
       if (energyJson != null) {
         loadedEnergy = Map<String, int>.from(json.decode(energyJson));
       }
 
-      // 3. Check-In Emotions List
       final emotionsJson = prefs.getString('zenara_checkin_emotions');
       List<String> loadedEmotions = ['Calm', 'Anxious', 'Overwhelmed'];
       if (emotionsJson != null) {
         loadedEmotions = List<String>.from(json.decode(emotionsJson));
       }
 
-      // 4. Check-In Intensities Map
       final intensitiesJson = prefs.getString('zenara_checkin_intensities');
       Map<String, int> loadedIntensities = {'Calm': 60, 'Anxious': 45, 'Overwhelmed': 75};
       if (intensitiesJson != null) {
@@ -151,9 +156,7 @@ class _MainShellState extends State<MainShell> {
       });
     } catch (e) {
       debugPrint("Error loading local states: $e");
-      setState(() {
-        _loading = false;
-      });
+      setState(() => _loading = false);
     }
   }
 
@@ -238,9 +241,11 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
+
     if (_loading) {
       return Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: AppColors.background(context),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -250,7 +255,7 @@ class _MainShellState extends State<MainShell> {
               Text(
                 'Loading Zenara...',
                 style: GoogleFonts.inter(
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                  color: AppColors.text(context),
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -266,178 +271,122 @@ class _MainShellState extends State<MainShell> {
     }
 
     final List<Map<String, dynamic>> tabs = [
-      {
-        'id': 'home',
-        'label': 'Home',
-        'icon': Icons.home_outlined,
-        'activeIcon': Icons.home,
-      },
-      {
-        'id': 'journal',
-        'label': 'My Journal',
-        'icon': Icons.menu_book_outlined,
-        'activeIcon': Icons.menu_book,
-      },
-      {
-        'id': 'nova',
-        'label': 'Nova',
-        'icon': Icons.forum_outlined,
-        'activeIcon': Icons.forum,
-      },
-      {
-        'id': 'library',
-        'label': 'Library',
-        'icon': Icons.spa_outlined,
-        'activeIcon': Icons.spa,
-      },
-      {
-        'id': 'therapist',
-        'label': 'Insights',
-        'icon': Icons.analytics_outlined,
-        'activeIcon': Icons.analytics,
-      },
+      {'id': 'home', 'label': 'Home', 'icon': Icons.home_outlined, 'activeIcon': Icons.home},
+      {'id': 'journal', 'label': 'Journal', 'icon': Icons.menu_book_outlined, 'activeIcon': Icons.menu_book},
+      {'id': 'nova', 'label': 'Nova', 'icon': Icons.forum_outlined, 'activeIcon': Icons.forum},
+      {'id': 'library', 'label': 'Library', 'icon': Icons.spa_outlined, 'activeIcon': Icons.spa},
+      {'id': 'therapist', 'label': 'Insights', 'icon': Icons.analytics_outlined, 'activeIcon': Icons.analytics},
     ];
 
     final isSettings = _screen == 'settings';
 
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Top Header Bar
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: AppColors.border),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      const LotusLogo(size: 26),
-                      const SizedBox(width: 8),
-                      Text(
-                        'zenara',
-                        style: GoogleFonts.playfairDisplay(
-                          color: Theme.of(context).textTheme.bodyMedium?.color,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        if (_screen == 'settings') {
-                          _screen = 'home';
-                        } else {
-                          _screen = 'settings';
-                        }
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isSettings ? AppColors.bgElevated : Colors.transparent,
-                        border: Border.all(
-                          color: isSettings ? AppColors.purple : Colors.transparent,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.settings,
-                        color: isSettings ? AppColors.purpleLight : Theme.of(context).textTheme.bodyMedium?.color,
-                        size: 20,
-                      ),
+      body: Stack(
+        children: [
+          // Background
+          Container(
+            decoration: BoxDecoration(
+              gradient: isDark
+                  ? const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF0F172A), Color(0xFF130F2A), Color(0xFF0F172A)],
+                    )
+                  : const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xFFF8FAFC), Color(0xFFF1F5F9), Color(0xFFEDE9FE)],
                     ),
-                  ),
-                ],
-              ),
             ),
+          ),
 
-            // Main Content Area
-            Expanded(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                child: _buildActiveScreen(),
-              ),
-            ),
-
-            // Bottom Navigation Bar
-            Container(
-              height: 72,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                border: const Border(
-                  top: BorderSide(color: AppColors.border),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: tabs.map((tab) {
-                  final isActive = _screen == tab['id'];
-                  final icon = isActive ? tab['activeIcon'] as IconData : tab['icon'] as IconData;
-                  final color = isActive ? AppColors.purple : AppColors.muted;
-
-                  return InkWell(
-                    onTap: () => _onNavigate(tab['id'] as String),
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 14),
-                      decoration: BoxDecoration(
-                        color: isActive ? AppColors.purple.withOpacity(0.08) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
+          SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                // Top Header Bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
                         children: [
-                          Icon(icon, color: color, size: 22),
-                          const SizedBox(height: 2),
+                          Image.asset('assets/logo.png', width: 28, height: 28, errorBuilder: (_, __, ___) => const LotusLogo(size: 26)),
+                          const SizedBox(width: 12),
                           Text(
-                            tab['label'] as String,
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              color: color,
-                              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                            'Zenara',
+                            style: GoogleFonts.playfairDisplay(
+                              color: AppColors.text(context),
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _screen = _screen == 'settings' ? 'home' : 'settings';
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isSettings
+                                ? AppColors.purple.withOpacity(0.15)
+                                : (isDark ? AppColors.bgGlass : Colors.white),
+                            border: Border.all(
+                              color: isSettings
+                                  ? AppColors.purple.withOpacity(0.5)
+                                  : (isDark ? Colors.white.withOpacity(0.1) : AppColors.borderLight),
+                            ),
+                            boxShadow: isDark
+                                ? []
+                                : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+                          ),
+                          child: Icon(
+                            Icons.settings_outlined,
+                            color: isSettings ? AppColors.purpleLight : AppColors.mutedText(context),
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-            // Persistent Legal Clinical Disclaimer Footer
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                border: const Border(
-                  top: BorderSide(color: AppColors.border, width: 0.5),
+                // Main Content
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    switchInCurve: Curves.easeOut,
+                    switchOutCurve: Curves.easeIn,
+                    child: _buildActiveScreen(),
+                  ),
                 ),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                'Support companion — not a substitute for clinical therapy. In crisis? Call 988 or 9152987821.',
-                style: GoogleFonts.inter(
-                  color: AppColors.muted,
-                  fontSize: 9,
-                ),
-                textAlign: TextAlign.center,
-              ),
+                // Space for floating nav bar
+                const SizedBox(height: 88),
+              ],
             ),
-          ],
-        ),
+          ),
+
+          // Floating Navigation Bar
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: MediaQuery.of(context).padding.bottom + 16,
+            child: FloatingNavBar(
+              activeScreenId: _screen,
+              onNavigate: _onNavigate,
+              tabs: tabs,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -463,18 +412,14 @@ class _MainShellState extends State<MainShell> {
           key: const ValueKey('home'),
           energy: _energy,
           onEnergyChanged: (val) {
-            setState(() {
-              _energy = val;
-            });
+            setState(() => _energy = val);
             _saveStates();
           },
           emotions: _emotions,
           onEmotionToggled: _toggleEmotion,
           emotionIntensities: _emotionIntensities,
           onIntensitiesChanged: (val) {
-            setState(() {
-              _emotionIntensities = val;
-            });
+            setState(() => _emotionIntensities = val);
             _saveStates();
           },
           onNavigate: _onNavigate,

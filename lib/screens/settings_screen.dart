@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/colors.dart';
+import '../widgets/glass_card.dart';
 import '../main.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -109,7 +111,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: AppColors.bgCard,
+          backgroundColor: AppColors.card(context),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
             side: BorderSide(color: const Color(0xFFF06C8A).withValues(alpha: 0.3), width: 1.5),
@@ -121,7 +123,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text(
                 'Delete Personal Data?',
                 style: GoogleFonts.playfairDisplay(
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                  color: AppColors.text(context),
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
                 ),
@@ -131,7 +133,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           content: Text(
             'This action is complying with the India DPDP Act 2023. It will permanently erase all journals, mood check-ins, consent parameters, and API keys. This cannot be undone.',
             style: GoogleFonts.dmSans(
-              color: AppColors.muted,
+              color: AppColors.mutedText(context),
               fontSize: 13.5,
               height: 1.45,
             ),
@@ -141,7 +143,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(
                 'Cancel',
-                style: GoogleFonts.dmSans(color: AppColors.muted, fontWeight: FontWeight.w600),
+                style: GoogleFonts.dmSans(color: AppColors.mutedText(context), fontWeight: FontWeight.w600),
               ),
             ),
             ElevatedButton(
@@ -155,7 +157,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               child: Text(
                 'Erase Everything',
-                style: GoogleFonts.dmSans(color: Theme.of(context).textTheme.bodyMedium?.color, fontWeight: FontWeight.bold),
+                style: GoogleFonts.dmSans(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -181,6 +183,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
@@ -195,7 +198,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: GoogleFonts.playfairDisplay(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
-                color: Theme.of(context).textTheme.bodyMedium?.color,
+                color: AppColors.text(context),
               ),
             ),
             const SizedBox(height: 2),
@@ -203,7 +206,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               'App Preferences & Compliance',
               style: GoogleFonts.dmSans(
                 fontSize: 13,
-                color: AppColors.muted,
+                color: AppColors.mutedText(context),
               ),
             ),
             const SizedBox(height: 20),
@@ -244,12 +247,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Text(
                     'Zenara v1.0.0 (Flutter)',
-                    style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.muted),
+                    style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.mutedText(context)),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Secure & Empathetic Space ✦',
-                    style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.muted.withValues(alpha: 0.7)),
+                    style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.mutedText(context).withOpacity(0.7)),
                   ),
                 ],
               ),
@@ -262,13 +265,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildAppearanceCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
-      ),
+    final isDark = AppColors.isDark(context);
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -280,7 +279,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                  color: AppColors.text(context),
                 ),
               ),
               Switch(
@@ -296,7 +295,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             style: GoogleFonts.dmSans(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
+              color: AppColors.text(context),
             ),
           ),
           const SizedBox(height: 8),
@@ -316,15 +315,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       shape: BoxShape.circle,
                       color: color ?? AppColors.bg,
                       border: Border.all(
-                        color: isSelected ? AppColors.purpleLight : AppColors.border,
+                        color: isSelected ? AppColors.purpleLight : (isDark ? AppColors.border : AppColors.borderLight),
                         width: isSelected ? 2.5 : 1,
                       ),
                       boxShadow: isSelected
                           ? [BoxShadow(color: AppColors.purpleLight.withOpacity(0.3), blurRadius: 4)]
                           : null,
                     ),
-                    child: color == null 
-                        ? Icon(Icons.format_color_reset, size: 14, color: AppColors.muted)
+                    child: color == null
+                        ? Icon(Icons.format_color_reset, size: 14, color: AppColors.mutedText(context))
                         : null,
                   ),
                 );
@@ -342,20 +341,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       style: GoogleFonts.dmSans(
         fontSize: 11,
         fontWeight: FontWeight.bold,
-        color: AppColors.muted,
-        letterSpacing: 1.0,
+        color: AppColors.mutedText(context),
+        letterSpacing: 1.5,
       ),
     );
   }
 
   Widget _buildApiKeyCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
-      ),
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -364,7 +358,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             style: GoogleFonts.dmSans(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
+              color: AppColors.text(context),
             ),
           ),
           const SizedBox(height: 4),
@@ -372,7 +366,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             'Enter your OpenRouter API Key to unlock online companion mode. Leave empty to use local offline mock responses.',
             style: GoogleFonts.dmSans(
               fontSize: 12,
-              color: AppColors.muted,
+              color: AppColors.mutedText(context),
               height: 1.4,
             ),
           ),
@@ -380,23 +374,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
             decoration: BoxDecoration(
-              color: AppColors.bgElevated,
+              color: AppColors.elevated(context),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.purple.withOpacity(0.2)),
             ),
             child: TextField(
               controller: _apiKeyController,
               obscureText: _obscureApiKey,
-              style: GoogleFonts.dmSans(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 13.5),
+              style: GoogleFonts.dmSans(color: AppColors.text(context), fontSize: 13.5),
               decoration: InputDecoration(
                 hintText: 'sk-ant-api03-...',
-                hintStyle: GoogleFonts.dmSans(color: AppColors.muted),
+                hintStyle: GoogleFonts.dmSans(color: AppColors.mutedText(context)),
                 border: InputBorder.none,
                 isDense: true,
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscureApiKey ? Icons.visibility_off : Icons.visibility,
-                    color: AppColors.muted,
+                    color: AppColors.mutedText(context),
                     size: 18,
                   ),
                   onPressed: () {
@@ -414,15 +408,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.purple,
               disabledBackgroundColor: AppColors.purple.withOpacity(0.3),
-              foregroundColor: AppColors.textPrimary,
+              foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 42),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             child: _savingKey
-                ? SizedBox(
+                ? const SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).textTheme.bodyMedium?.color),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   )
                 : Text(
                     'Save API Key',
@@ -435,13 +429,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildDpdPCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
-      ),
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -454,7 +443,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                  color: AppColors.text(context),
                 ),
               ),
             ],
@@ -464,7 +453,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             'Under Section 12 of the India DPDP Act 2023, you have the absolute right to correct, complete, or request erasure of your personal data stored within this application.',
             style: GoogleFonts.dmSans(
               fontSize: 12,
-              color: AppColors.muted,
+              color: AppColors.mutedText(context),
               height: 1.45,
             ),
           ),
@@ -490,13 +479,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildDisclaimerCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
-      ),
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -509,7 +493,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                  color: AppColors.text(context),
                 ),
               ),
             ],
@@ -519,7 +503,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             'Zenara is a clinical tool intended to complement therapy and mindfulness practices. The AI companion (Nova) is designed for cognitive reframing and emotional support, but is NOT a clinical psychologist, psychiatrist, or medical professional.',
             style: GoogleFonts.dmSans(
               fontSize: 11.5,
-              color: AppColors.muted,
+              color: AppColors.mutedText(context),
               height: 1.45,
             ),
           ),
@@ -538,13 +522,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildTheoreticalFrameworkCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
-      ),
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -557,7 +536,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                  color: AppColors.text(context),
                 ),
               ),
             ],
@@ -567,7 +546,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             'Zenara is designed in accordance with established mental health app quality assessment guidelines. It incorporates core criteria from the Mobile App Rating Scale (A-MARS) and the user version (uMARS) focusing on:\n\n• Evidence of effectiveness & quality information\n• SMART goal setting strategies\n• Integration with clinical interoperability standards\n• Focus on accessible resources and active user engagement\n\nThese frameworks ensure our digital mental health services provide safe, reliable, and high-quality psychological support based on peer-reviewed evaluations.',
             style: GoogleFonts.dmSans(
               fontSize: 11.5,
-              color: AppColors.muted,
+              color: AppColors.mutedText(context),
               height: 1.45,
             ),
           ),

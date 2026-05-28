@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/colors.dart';
+import '../widgets/glass_card.dart';
 
 class NovaScreen extends StatefulWidget {
   const NovaScreen({Key? key}) : super(key: key);
@@ -29,12 +31,7 @@ class _NovaScreenState extends State<NovaScreen> {
   bool _safetyTriggered = false;
 
   final List<String> _crisisWords = [
-    "suicide",
-    "kill myself",
-    "harm myself",
-    "end my life",
-    "want to die",
-    "self harm",
+    "suicide", "kill myself", "harm myself", "end my life", "want to die", "self harm",
   ];
 
   @override
@@ -87,7 +84,7 @@ class _NovaScreenState extends State<NovaScreen> {
         _messages.add({
           'id': (DateTime.now().millisecondsSinceEpoch + 1).toString(),
           'from': 'nova',
-          'text': "Safety Warning: I have detected indicators of crisis. The AI companion is suspended. Please see the crisis support information above.",
+          'text': "Safety Warning: I have detected indicators of crisis. The AI companion is suspended. Please call 988 immediately.",
         });
         _inputController.clear();
       });
@@ -110,8 +107,7 @@ class _NovaScreenState extends State<NovaScreen> {
 
     if (_apiKey.isNotEmpty) {
       try {
-        final systemPrompt = "You are Nova, Zenara's compassionate AI mental health companion. You are warm, empathetic, and supportive. You help users reflect on their emotions, reframe negative thoughts, and practice coping strategies. You are NOT a therapist or medical professional — always remind users to speak with their therapist (Dr. Hayes) for clinical support. Keep responses concise (2-3 sentences), warm, and conversational. Use gentle, supportive language. If you detect any self-harm language, immediately provide crisis resources.";
-        
+        final systemPrompt = "You are Nova, Zenara's compassionate AI mental health companion.";
         final response = await http.post(
           Uri.parse('https://openrouter.ai/api/v1/chat/completions'),
           headers: {
@@ -156,8 +152,7 @@ class _NovaScreenState extends State<NovaScreen> {
         });
       }
     } else {
-      // Mock offline mode
-      await Future.delayed(const Duration(milliseconds: 800));
+      await Future.delayed(const Duration(milliseconds: 1200));
       final reply = _getMockResponse(text);
       setState(() {
         _messages.add({
@@ -179,23 +174,10 @@ class _NovaScreenState extends State<NovaScreen> {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOutQuart,
         );
       }
-    });
-  }
-
-  void _handleResetCrisis() {
-    setState(() {
-      _safetyTriggered = false;
-      _messages = [
-        {
-          'id': DateTime.now().millisecondsSinceEpoch.toString(),
-          'from': 'nova',
-          'text': "I'm back, Sarah. Let's start fresh. How can I support you right now?",
-        }
-      ];
     });
   }
 
@@ -209,367 +191,232 @@ class _NovaScreenState extends State<NovaScreen> {
           Container(
             padding: const EdgeInsets.only(top: 12, bottom: 12),
             alignment: Alignment.center,
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.border)),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: AppColors.isDark(context) ? Colors.white.withOpacity(0.05) : AppColors.borderLight)),
             ),
             child: Column(
               children: [
                 Text(
                   'Nova',
                   style: GoogleFonts.playfairDisplay(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.text(context),
                   ),
-                ),
+                ).animate().fadeIn(duration: 400.ms),
                 const SizedBox(height: 2),
                 Text(
                   'AI Companion',
-                  style: GoogleFonts.dmSans(
+                  style: GoogleFonts.inter(
                     fontSize: 12,
-                    color: AppColors.muted,
+                    color: AppColors.purpleLight,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 1.2,
                   ),
-                ),
+                ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
               ],
             ),
           ),
 
           Expanded(
-            child: Column(
+            child: Stack(
               children: [
-                // Safety Banner
-                if (_safetyTriggered) _buildSafetyBanner(),
-
-                // Nova Glow Planet Avatar (shown when chat starts)
-                if (!_safetyTriggered && _messages.length <= 2) _buildPlanetAvatar(),
+                // Floating Particles/Glow in background
+                if (!_safetyTriggered && _messages.length <= 2)
+                  Center(
+                    child: Container(
+                      width: 200,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.purple.withOpacity(AppColors.isDark(context) ? 0.2 : 0.08),
+                            blurRadius: 100,
+                            spreadRadius: 20,
+                          ),
+                        ],
+                      ),
+                    ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+                     .scaleXY(begin: 1.0, end: 1.2, duration: 4.seconds, curve: Curves.easeInOut)
+                     .fade(begin: 0.5, end: 1.0, duration: 2.seconds),
+                  ),
 
                 // Chat Thread
-                Expanded(
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    itemCount: _messages.length + (_loading ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == _messages.length) {
-                        return _buildLoadingBubble();
-                      }
-
-                      final msg = _messages[index];
-                      final isUser = msg['from'] == 'user';
-
-                      return Align(
-                        alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            gradient: isUser
-                                ? const LinearGradient(
-                                    colors: [AppColors.purple, AppColors.purpleDark],
-                                  )
-                                : null,
-                            color: isUser ? null : AppColors.bgCard.withOpacity(0.75),
-                            borderRadius: BorderRadius.only(
-                              topLeft: const Radius.circular(18),
-                              topRight: const Radius.circular(18),
-                              bottomLeft: Radius.circular(isUser ? 18 : 4),
-                              bottomRight: Radius.circular(isUser ? 4 : 18),
-                            ),
-                            border: isUser ? null : Border.all(color: AppColors.border),
-                          ),
-                          constraints: BoxConstraints(
-                            maxWidth: MediaQuery.of(context).size.width * 0.8,
-                          ),
-                          child: Text(
-                            msg['text']!,
-                            style: GoogleFonts.dmSans(
-                              fontSize: 13.5,
-                              color: Colors.white,
-                              height: 1.45,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                // Suggestion Chips (shown when chat is in initial state)
-                if (!_safetyTriggered && _messages.length <= 2) _buildSuggestions(),
-
-                // Input Bar
-                _buildInputBar(),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSafetyBanner() {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0x14F06C8A), // Color(0xFFF06C8A) with 0.08 opacity
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0x4DF06C8A), width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.warning_amber_rounded, color: Color(0xFFF06C8A), size: 18),
-              const SizedBox(width: 8),
-              Text(
-                'IMMEDIATE SUPPORT AVAILABLE',
-                style: GoogleFonts.dmSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFFF06C8A),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'You are not alone. Please reach out to these confidential resources immediately:',
-            style: GoogleFonts.dmSans(
-              fontSize: 12,
-              color: Colors.white.withOpacity(0.9),
-              height: 1.45,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text('📞 National Helpline (India): 9152987821',
-              style: GoogleFonts.dmSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white)),
-          const SizedBox(height: 4),
-          Text('📞 Suicide & Crisis Lifeline (US): 988',
-              style: GoogleFonts.dmSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white)),
-          const SizedBox(height: 4),
-          Text('📞 Vandrevala Foundation: 1860 2662 345',
-              style: GoogleFonts.dmSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white)),
-          const SizedBox(height: 14),
-          ElevatedButton(
-            onPressed: _handleResetCrisis,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.bgElevated,
-              elevation: 0,
-              side: const BorderSide(color: AppColors.border),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: Text(
-              'Reset Companion',
-              style: GoogleFonts.dmSans(color: AppColors.purpleLight, fontSize: 12, fontWeight: FontWeight.bold),
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPlanetAvatar() {
-    return Container(
-      margin: const EdgeInsets.only(top: 20, bottom: 10),
-      width: 120,
-      height: 120,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.purple.withOpacity(0.08),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.purple.withOpacity(0.4),
-            blurRadius: 20,
-          ),
-        ],
-      ),
-      child: Center(
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Planet body with gradient
-            Container(
-              width: 84,
-              height: 84,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const RadialGradient(
-                  colors: [Color(0xFFA89AF7), Color(0xFF4A3FA0), Color(0xFF1A1040)],
-                  center: Alignment(-0.3, -0.3),
-                  radius: 0.65,
-                ),
-                border: Border.all(color: const Color(0x66A89AF7), width: 1),
-              ),
-            ),
-            // Orbit Ring (tilted ellipse)
-            Transform.rotate(
-              angle: 0.25,
-              child: Container(
-                width: 96,
-                height: 36,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(48),
-                  border: Border.all(color: const Color(0xB3A89AF7), width: 2.5),
-                ),
-              ),
-            ),
-            // Inner Face Details
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 6),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Column(
                   children: [
-                    Container(
-                      width: 7,
-                      height: 7,
-                      decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+                    if (_safetyTriggered)
+                      Container(
+                        margin: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.coral.withOpacity(0.1),
+                          border: Border.all(color: AppColors.coral.withOpacity(0.5)),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          "Safety mechanisms engaged. Please seek immediate support.",
+                          style: GoogleFonts.inter(color: AppColors.coral, fontWeight: FontWeight.bold),
+                        ),
+                      ).animate().shake(duration: 400.ms),
+
+                    Expanded(
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                        itemCount: _messages.length,
+                        itemBuilder: (context, index) {
+                          final msg = _messages[index];
+                          final isUser = msg['from'] == 'user';
+                          return _buildChatBubble(msg['text']!, isUser)
+                              .animate().fadeIn(duration: 300.ms).slideY(begin: 0.2, end: 0, curve: Curves.easeOutQuart);
+                        },
+                      ),
                     ),
-                    const SizedBox(width: 18),
-                    Container(
-                      width: 7,
-                      height: 7,
-                      decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
-                    ),
+                    
+                    if (_loading)
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.purple.withOpacity(0.2),
+                              ),
+                              child: const Icon(Icons.graphic_eq, color: AppColors.purpleLight, size: 16),
+                            ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+                             .scaleXY(end: 1.1, duration: 600.ms)
+                             .shimmer(color: Colors.white, duration: 1.seconds),
+                            const SizedBox(width: 12),
+                            Text("Nova is thinking...", style: GoogleFonts.inter(color: AppColors.mutedText(context), fontSize: 13)),
+                          ],
+                        ),
+                      ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                // Smile shape (semi-circle)
-                Container(
-                  width: 12,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(6),
-                      bottomRight: Radius.circular(6),
-                    ),
-                    border: Border(
-                      bottom: BorderSide(color: Colors.white, width: 2),
-                      left: BorderSide(color: Colors.white, width: 2),
-                      right: BorderSide(color: Colors.white, width: 2),
+              ],
+            ),
+          ),
+
+          // Input Area
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.isDark(context) ? AppColors.bgCard.withOpacity(0.6) : Colors.white,
+              border: Border(top: BorderSide(color: AppColors.isDark(context) ? Colors.white.withOpacity(0.05) : AppColors.borderLight)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.isDark(context) ? Colors.white.withOpacity(0.05) : AppColors.bgElevatedLight,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: AppColors.isDark(context) ? Colors.white.withOpacity(0.1) : AppColors.borderLight),
+                      ),
+                      child: TextField(
+                        controller: _inputController,
+                        style: GoogleFonts.inter(color: AppColors.text(context)),
+                        decoration: InputDecoration(
+                          hintText: "Share your thoughts...",
+                          hintStyle: GoogleFonts.inter(color: AppColors.mutedText(context)),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onSubmitted: (_) => _sendMessage(),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingBubble() {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        decoration: BoxDecoration(
-          color: AppColors.bgCard.withOpacity(0.75),
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(18),
-            topRight: Radius.circular(18),
-            bottomLeft: Radius.circular(4),
-            bottomRight: Radius.circular(18),
-          ),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: const SizedBox(
-          width: 24,
-          height: 16,
-          child: Center(
-            child: SizedBox(
-              width: 14,
-              height: 14,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: AppColors.purpleLight,
+                  const SizedBox(width: 12),
+                  GestureDetector(
+                    onTap: () => _sendMessage(),
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [AppColors.purple, AppColors.purpleLight],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.purple.withOpacity(0.3),
+                            blurRadius: 12,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                    ).animate().scale(delay: 200.ms, duration: 300.ms, curve: Curves.easeOutBack),
+                  ),
+                ],
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildSuggestions() {
-    final chips = [
-      "Reflect on my day",
-      "Reframe my thoughts",
-      "Breathing exercise",
-      "Just talk",
-    ];
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        children: chips.map((text) {
-          return GestureDetector(
-            onTap: () => _sendMessage(text),
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+  Widget _buildChatBubble(String text, bool isUser) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Row(
+        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (!isUser) ...[
+            Container(
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
-                color: AppColors.bgCard.withOpacity(0.6),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border),
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [AppColors.teal.withOpacity(0.8), AppColors.purple.withOpacity(0.8)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: const Icon(Icons.auto_awesome, color: Colors.white, size: 18),
+            ),
+            const SizedBox(width: 12),
+          ],
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                color: isUser ? AppColors.purple : (AppColors.isDark(context) ? AppColors.bgGlass : const Color(0xFFF1F0FF)),
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(20),
+                  topRight: const Radius.circular(20),
+                  bottomLeft: Radius.circular(isUser ? 20 : 4),
+                  bottomRight: Radius.circular(isUser ? 4 : 20),
+                ),
+                border: Border.all(
+                  color: isUser ? Colors.transparent : (AppColors.isDark(context) ? Colors.white.withOpacity(0.1) : AppColors.borderLight),
+                ),
               ),
               child: Text(
-                '→ $text',
-                style: GoogleFonts.dmSans(color: Colors.white, fontSize: 13),
+                text,
+                style: GoogleFonts.inter(
+                  color: isUser ? Colors.white : AppColors.text(context),
+                  fontSize: 15,
+                  height: 1.5,
+                  fontWeight: FontWeight.w400,
+                ),
               ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildInputBar() {
-    return Container(
-      margin: const EdgeInsets.only(left: 20, right: 20, bottom: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard.withOpacity(0.8),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.purple.withOpacity(0.25), width: 1.5),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _inputController,
-              enabled: !_safetyTriggered,
-              style: GoogleFonts.dmSans(color: Colors.white, fontSize: 13.5),
-              decoration: InputDecoration(
-                hintText: _safetyTriggered ? 'Companion suspended' : 'Type your message...',
-                hintStyle: GoogleFonts.dmSans(color: AppColors.muted),
-                border: InputBorder.none,
-                isDense: true,
-              ),
-              textInputAction: TextInputAction.send,
-              onSubmitted: (val) => _sendMessage(),
             ),
           ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: _safetyTriggered ? null : () => _sendMessage(),
-            child: Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: _safetyTriggered ? AppColors.purple.withOpacity(0.2) : AppColors.purple,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.arrow_forward, color: Colors.white, size: 16),
-            ),
-          )
+          if (isUser) const SizedBox(width: 12),
         ],
       ),
     );
